@@ -1,0 +1,728 @@
+<title>망각곡선 복습노트</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans+KR:wght@400;500;700&family=Nanum+Myeongjo:wght@700;800&display=swap">
+<style>
+:root{
+  --bg:#F3F5F9; --surface:#FFFFFF; --surface-2:#E9EDF5; --line:#D5DBE7;
+  --ink:#1B2437; --ink-2:#56607A; --ink-3:#8B93A8;
+  --accent:#2F4FC8; --accent-ink:#FFFFFF; --accent-soft:#E3E8FB;
+  --mark:#FFE48A; --mark-ink:#5A4300;
+  --good:#23845A; --good-soft:#DDF3E8;
+  --warn:#B7791F; --warn-soft:#FBEFD5;
+  --bad:#C2412D; --bad-soft:#FBE3DE;
+  --grid:#E3E7F0;
+  --f-display:"Nanum Myeongjo","Noto Serif KR",serif;
+  --f-body:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#10141D; --surface:#171D29; --surface-2:#1F2736; --line:#2C3547;
+    --ink:#E6EAF3; --ink-2:#A3ACC2; --ink-3:#6E7890;
+    --accent:#8EA4FF; --accent-ink:#0E1426; --accent-soft:#232E52;
+    --mark:#E3C44F; --mark-ink:#241B00;
+    --good:#5BC894; --good-soft:#15352A;
+    --warn:#E3AE55; --warn-soft:#3A2D14;
+    --bad:#F07F6B; --bad-soft:#3E1D18;
+    --grid:#232B3A;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#10141D; --surface:#171D29; --surface-2:#1F2736; --line:#2C3547;
+  --ink:#E6EAF3; --ink-2:#A3ACC2; --ink-3:#6E7890;
+  --accent:#8EA4FF; --accent-ink:#0E1426; --accent-soft:#232E52;
+  --mark:#E3C44F; --mark-ink:#241B00;
+  --good:#5BC894; --good-soft:#15352A;
+  --warn:#E3AE55; --warn-soft:#3A2D14;
+  --bad:#F07F6B; --bad-soft:#3E1D18;
+  --grid:#232B3A;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.6}
+.wrap{max-width:780px;margin:0 auto;padding-inline:16px;padding-block:28px 80px;display:flex;flex-direction:column;gap:22px}
+h1,h2,h3{margin:0;text-wrap:balance}
+h1{font-family:var(--f-display);font-weight:800;font-size:28px;line-height:1.25;letter-spacing:-.01em}
+h2{font-size:13px;font-weight:700;letter-spacing:.06em;color:var(--ink-2)}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.muted{color:var(--ink-2)}
+.small{font-size:13px}
+
+header.top{display:flex;flex-direction:column;gap:14px}
+.date-line{display:flex;flex-wrap:wrap;align-items:baseline;gap:10px;color:var(--ink-2);font-size:14px}
+.sync{font-size:12px;color:var(--ink-3)}
+.summary{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.summary div{background:var(--surface);padding:12px 14px;display:flex;flex-direction:column;gap:2px}
+.summary b{font-family:var(--f-mono);font-size:22px;font-weight:600;font-variant-numeric:tabular-nums}
+.summary span{font-size:12px;color:var(--ink-2)}
+.summary .is-bad b{color:var(--bad)}
+.progress{height:8px;background:var(--surface-2);border-radius:99px;overflow:hidden}
+.progress i{display:block;height:100%;background:var(--good);width:0;transition:width .4s}
+@media (max-width:520px){.summary{grid-template-columns:repeat(2,1fr)}}
+
+nav.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);overflow-x:auto;position:sticky;top:env(safe-area-inset-top,0px);background:var(--bg);z-index:5}
+nav.tabs button{appearance:none;border:0;background:none;font:inherit;font-weight:500;color:var(--ink-2);padding:10px 14px;border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap}
+nav.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent);font-weight:700}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.banner{background:var(--mark);color:var(--mark-ink);border-radius:8px;padding:10px 14px;font-size:14px}
+
+section.group{display:flex;flex-direction:column;gap:10px}
+.group-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.count{font-family:var(--f-mono);font-size:12px;color:var(--ink-3)}
+.list{display:flex;flex-direction:column;gap:8px}
+.empty{padding:16px;border:1px dashed var(--line);border-radius:10px;color:var(--ink-3);font-size:14px}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px;display:grid;grid-template-columns:1fr auto;gap:10px 16px;align-items:center;border-left-width:4px}
+.card.overdue{border-left-color:var(--bad)}
+.card.due{border-left-color:var(--accent)}
+.card.plan{border-left-color:var(--warn)}
+.card.done{border-left-color:var(--good);opacity:.72}
+.card.mastered{border-left-color:var(--good)}
+.card-main{display:flex;flex-direction:column;gap:6px;min-width:0}
+.card-title{font-weight:700;font-size:16px;overflow-wrap:anywhere}
+.meta{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;font-size:12.5px;color:var(--ink-2)}
+.chip{display:inline-block;padding:1px 8px;border-radius:99px;background:var(--surface-2);color:var(--ink-2);font-size:12px}
+.chip.bad{background:var(--bad-soft);color:var(--bad)}
+.chip.good{background:var(--good-soft);color:var(--good)}
+.chip.mark{background:var(--mark);color:var(--mark-ink)}
+.note{font-size:13px;color:var(--ink-2);overflow-wrap:anywhere}
+.stages{display:flex;gap:3px;align-items:center}
+.stages i{width:22px;height:6px;border-radius:2px;background:var(--surface-2)}
+.stages i.on{background:var(--good)}
+.stages i.next{background:var(--accent)}
+.ret{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.ret.low{color:var(--bad)} .ret.mid{color:var(--warn)} .ret.high{color:var(--good)}
+.actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+@media (max-width:560px){.card{grid-template-columns:1fr}.actions{justify-content:flex-start}}
+
+.btn{appearance:none;font:inherit;font-size:14px;font-weight:500;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;padding:7px 12px;cursor:pointer;white-space:nowrap}
+.btn:hover{background:var(--surface-2)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.good{border-color:var(--good);color:var(--good)}
+.btn.good:hover{background:var(--good-soft)}
+.btn.warn{border-color:var(--warn);color:var(--warn)}
+.btn.warn:hover{background:var(--warn-soft)}
+.btn.bad{border-color:var(--bad);color:var(--bad)}
+.btn.bad:hover{background:var(--bad-soft)}
+.btn.ghost{border-color:transparent;color:var(--ink-3);padding-inline:8px}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+
+form.add{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;display:grid;grid-template-columns:2fr 1fr 1fr;gap:10px}
+form.add .full{grid-column:1/-1}
+form.add label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--ink-2);font-weight:500}
+input,select,textarea{font:inherit;font-size:15px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:7px;padding:8px 10px;width:100%}
+textarea{resize:vertical;min-height:40px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:space-between}
+.check{flex-direction:row!important;align-items:center;gap:8px!important;font-size:14px!important;color:var(--ink)!important}
+.check input{width:auto}
+@media (max-width:560px){form.add{grid-template-columns:1fr 1fr}form.add .title-field{grid-column:1/-1}}
+
+.forecast{display:grid;grid-template-columns:repeat(14,1fr);gap:4px;align-items:end;height:120px;padding-top:8px}
+.fc-col{display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;justify-content:flex-end;cursor:pointer;border-radius:6px;padding:2px 0}
+.fc-col:hover,.fc-col.sel{background:var(--surface-2)}
+.fc-bar{width:70%;background:var(--accent);border-radius:3px 3px 0 0;min-height:2px}
+.fc-bar.today{background:var(--bad)}
+.fc-n{font-family:var(--f-mono);font-size:11px;color:var(--ink-2)}
+.fc-d{font-family:var(--f-mono);font-size:10.5px;color:var(--ink-3)}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:12px}
+
+.chart-box{overflow-x:auto}
+svg.chart{width:100%;min-width:360px;height:auto;display:block}
+svg.chart text{fill:var(--ink-2);font-family:var(--f-mono);font-size:11px}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:var(--ink-2)}
+.legend i{display:inline-block;width:14px;height:3px;vertical-align:middle;margin-right:6px;border-radius:2px}
+table.sched{width:100%;border-collapse:collapse;font-size:14px}
+table.sched th,table.sched td{text-align:left;padding:8px 6px;border-bottom:1px solid var(--line)}
+table.sched th{font-size:12px;color:var(--ink-2);font-weight:500}
+table.sched td.mono{white-space:nowrap}
+.prose{max-width:65ch;font-size:14.5px;color:var(--ink-2)}
+.prose b{color:var(--ink)}
+
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 14px;border-radius:8px;font-size:14px;display:flex;gap:12px;align-items:center;z-index:20;max-width:calc(100% - 32px)}
+.toast button{appearance:none;border:0;background:none;color:var(--mark);font:inherit;font-weight:700;cursor:pointer}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="date-line"><span id="today-label" class="mono"></span><span id="sync" class="sync">불러오는 중</span></div>
+    <h1>오늘 복습할 것부터, 잊기 전에</h1>
+    <div class="summary" id="summary"></div>
+    <div class="progress" aria-label="오늘 진행률"><i id="progress-bar"></i></div>
+    <div class="small muted" id="progress-text"></div>
+  </header>
+
+  <nav class="tabs" role="tablist">
+    <button role="tab" data-tab="today" aria-selected="true">오늘</button>
+    <button role="tab" data-tab="plan" aria-selected="false">계획·일정</button>
+    <button role="tab" data-tab="all" aria-selected="false">전체</button>
+    <button role="tab" data-tab="curve" aria-selected="false">망각곡선</button>
+  </nav>
+
+  <div id="example-banner" class="banner" hidden>지금 보이는 항목은 <b>예시</b>입니다. 아래에서 첫 학습 항목을 추가하면 예시는 사라지고 내 기록만 남습니다.</div>
+
+  <!-- 오늘 -->
+  <div id="tab-today" class="tabpanel" style="display:flex;flex-direction:column;gap:22px">
+    <form class="add" id="add-form" autocomplete="off">
+      <label class="title-field">무엇을 배우나요
+        <input id="f-title" required maxlength="120" placeholder="예: 영어 단어 Day 12, 회계원리 3장">
+      </label>
+      <label>과목
+        <input id="f-subject" maxlength="40" list="subjects" placeholder="예: 영어">
+        <datalist id="subjects"></datalist>
+      </label>
+      <label>학습 예정일
+        <input id="f-date" type="date" required>
+      </label>
+      <label class="full">메모 (핵심 한 줄, 복습할 때 떠올릴 질문)
+        <textarea id="f-note" maxlength="400" rows="1" placeholder="예: 차변·대변 구분 규칙을 말로 설명할 수 있나?"></textarea>
+      </label>
+      <div class="full row">
+        <label class="check"><input type="checkbox" id="f-learned"> 이미 공부했어요 (바로 복습 주기 시작)</label>
+        <button class="btn primary" type="submit">계획에 추가</button>
+      </div>
+    </form>
+
+    <section class="group" id="g-overdue"></section>
+    <section class="group" id="g-due"></section>
+    <section class="group" id="g-plan"></section>
+    <section class="group" id="g-done"></section>
+  </div>
+
+  <!-- 계획·일정 -->
+  <div id="tab-plan" class="tabpanel" hidden style="flex-direction:column;gap:22px">
+    <div class="panel">
+      <div class="group-head"><h2>앞으로 14일 할 일</h2><span class="count">막대를 누르면 그날 목록</span></div>
+      <div class="forecast" id="forecast"></div>
+    </div>
+    <section class="group" id="g-day"></section>
+  </div>
+
+  <!-- 전체 -->
+  <div id="tab-all" class="tabpanel" hidden style="flex-direction:column;gap:22px">
+    <div class="row">
+      <select id="filter-subject" aria-label="과목 필터" style="max-width:220px"></select>
+      <span class="count" id="all-count"></span>
+    </div>
+    <section class="group" id="g-all"></section>
+  </div>
+
+  <!-- 곡선 -->
+  <div id="tab-curve" class="tabpanel" hidden style="flex-direction:column;gap:22px">
+    <div class="panel">
+      <div class="group-head"><h2>기억 유지율, 복습 없음과 주기 복습 비교</h2></div>
+      <div class="chart-box"><svg class="chart" id="chart" viewBox="0 0 640 280" role="img" aria-label="망각곡선 비교 차트"></svg></div>
+      <div class="legend">
+        <span><i style="background:var(--bad)"></i>복습 없음 (에빙하우스 1885 실측)</span>
+        <span><i style="background:var(--accent)"></i>이 앱 주기로 복습 (모델 추정)</span>
+      </div>
+    </div>
+    <div class="panel">
+      <h2>복습 주기</h2>
+      <table class="sched">
+        <thead><tr><th>회차</th><th>언제</th><th>간격</th><th>복습 직전 기억 추정</th></tr></thead>
+        <tbody id="sched-body"></tbody>
+      </table>
+      <div class="prose">
+        <p><b>기억남</b>을 누르면 다음 회차로 넘어가고 간격이 늘어납니다. <b>헷갈림</b>은 같은 회차를 내일 다시, <b>잊음</b>은 D+1 회차부터 다시 시작합니다. 여섯 번째(D+30)까지 통과하면 <b>장기기억</b>으로 표시됩니다.</p>
+        <p>에빙하우스 실험에서는 하루 뒤 약 33%, 한 달 뒤 약 21%만 남았습니다. 기억이 70~80% 남아 있을 때 한 번 더 꺼내 보면 다음 망각 속도가 느려진다는 것이 간격 반복의 원리입니다. 카드의 “기억 추정”은 복습 기록으로 계산한 모델 값이며 실제 시험 점수가 아닙니다.</p>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="toast" class="toast" hidden role="status"><span id="toast-msg"></span><button id="toast-undo" type="button" hidden>되돌리기</button></div>
+
+<script>
+(function(){
+  "use strict";
+  // ---------- 복습 주기 ----------
+  // 학습일 기준 회차별 오프셋(일). 0 = 학습 당일 자기 전 복습
+  const OFFSETS = [0, 1, 3, 7, 15, 30];
+  const LABELS  = ["당일", "D+1", "D+3", "D+7", "D+15", "D+30"];
+  // 기억 모델: R = exp(-t / S), S = S0 * GROWTH^n (n = 성공 복습 수)
+  // S0 = 0.9일 → 하루 뒤 33% (에빙하우스 실측과 일치)
+  const S0 = 0.9, GROWTH = 2.5;
+
+  // ---------- 날짜 ----------
+  const pad = n => String(n).padStart(2, "0");
+  const ymd = d => d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate());
+  const parse = s => { const [y, m, d] = s.split("-").map(Number); return new Date(y, m - 1, d); };
+  const addDays = (s, n) => { const d = parse(s); d.setDate(d.getDate() + n); return ymd(d); };
+  const diffDays = (a, b) => Math.round((parse(b) - parse(a)) / 86400000);
+  const WD = ["일", "월", "화", "수", "목", "금", "토"];
+  const fmtShort = s => { const d = parse(s); return (d.getMonth() + 1) + "/" + d.getDate() + "(" + WD[d.getDay()] + ")"; };
+  let TODAY = ymd(new Date());
+
+  // ---------- 상태 ----------
+  let items = new Map();       // id -> item
+  let isExample = false;
+  let backend = "pending";     // pending | db | local
+  let db = null;
+  let tab = "today";
+  let selDay = null;
+  let lastUndo = null;
+  const busy = new Set();
+  const LS_KEY = "forgetting-curve-notes-v1";
+  const LS_TAB = "forgetting-curve-tab";
+
+  const uid = () => "i" + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+  const clone = o => JSON.parse(JSON.stringify(o));
+  const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+  // ---------- 기억 추정 ----------
+  function memoryState(it) {
+    let n = 0, last = null;
+    for (const h of it.history || []) {
+      if (h.r === "learned" || h.r === "forgot") n = 0;
+      else if (h.r === "good") n += 1;
+      else if (h.r === "hard") n += 0.5;
+      last = h.d;
+    }
+    return { n, last };
+  }
+  function retention(it, onDate) {
+    if (!it.learnedAt) return null;
+    const { n, last } = memoryState(it);
+    const t = Math.max(0, diffDays(last, onDate || TODAY));
+    return Math.exp(-t / (S0 * Math.pow(GROWTH, n)));
+  }
+
+  // ---------- 상태 전이 ----------
+  function learn(it) {
+    it.learnedAt = TODAY;
+    it.stage = 0;
+    it.nextDue = TODAY;
+    it.mastered = false;
+    it.history = [...(it.history || []), { d: TODAY, r: "learned" }];
+  }
+  function review(it, r) {
+    it.history = [...(it.history || []), { d: TODAY, r }];
+    if (r === "good") {
+      const s = it.stage + 1;
+      if (s >= OFFSETS.length) { it.mastered = true; it.stage = OFFSETS.length; it.nextDue = null; }
+      else { it.stage = s; it.nextDue = addDays(TODAY, OFFSETS[s] - OFFSETS[s - 1]); }
+    } else if (r === "hard") {
+      it.nextDue = addDays(TODAY, 1);
+    } else { // forgot
+      it.stage = 1;
+      it.nextDue = addDays(TODAY, 1);
+    }
+  }
+
+  // ---------- 저장소 ----------
+  function loadLocal() {
+    try { const raw = localStorage.getItem(LS_KEY); if (raw) return JSON.parse(raw); } catch (e) {}
+    return {};
+  }
+  function saveLocal() {
+    try { localStorage.setItem(LS_KEY, JSON.stringify(Object.fromEntries(items))); } catch (e) {}
+  }
+  async function put(it) {
+    if (isExample) { clearExamples(); }
+    items.set(it.id, it);
+    render();
+    if (backend === "db") {
+      busy.add(it.id);
+      try { await db.doc("items/" + it.id).set(clone(it)); setSync(); }
+      catch (e) { toast(writeError(e)); }
+      finally { busy.delete(it.id); }
+    } else saveLocal();
+  }
+  async function remove(id) {
+    items.delete(id);
+    render();
+    if (backend === "db") {
+      try { await db.doc("items/" + id).delete(); } catch (e) { toast(writeError(e)); }
+    } else saveLocal();
+  }
+  function writeError(e) {
+    const c = e && e.code;
+    if (c === "quota_exceeded") return "저장 공간이 가득 찼어요. 장기기억 항목 몇 개를 삭제한 뒤 다시 시도하세요.";
+    if (c === "invalid_argument") return "이 화면에서는 저장 권한이 없어요. 소유자에게 편집 권한을 요청하세요.";
+    return "저장하지 못했어요. 잠시 후 다시 눌러 주세요.";
+  }
+  function setSync() {
+    const el = document.getElementById("sync");
+    if (isExample) el.textContent = "예시 보기";
+    else if (backend === "db") el.textContent = "클라우드 저장됨 · 어느 기기에서 열어도 같은 기록";
+    else if (backend === "local") el.textContent = "이 브라우저에 저장됨";
+    else el.textContent = "불러오는 중";
+  }
+
+  // ---------- 예시 데이터 (저장되지 않음) ----------
+  function exampleItems() {
+    const mk = (title, subject, learnedAgo, stage, hist, note) => {
+      const learnedAt = learnedAgo == null ? null : addDays(TODAY, -learnedAgo);
+      const it = { id: uid(), title, subject, note: note || "", planDate: learnedAt || TODAY, learnedAt, stage, nextDue: null, mastered: false, history: [], createdAt: Date.now(), example: true };
+      if (learnedAt) {
+        it.history.push({ d: learnedAt, r: "learned" });
+        hist.forEach(([ago, r]) => it.history.push({ d: addDays(TODAY, -ago), r }));
+        const last = it.history[it.history.length - 1].d;
+        it.nextDue = addDays(last, stage === 0 ? 0 : OFFSETS[stage] - OFFSETS[stage - 1]);
+      }
+      return it;
+    };
+    return [
+      mk("영어 단어 Day 11 (50개)", "영어", 1, 1, [[1, "good"]], "뜻 가리고 스펠링 말하기"),
+      mk("회계원리 2장 · 분개", "회계", 3, 2, [[3, "good"], [2, "good"]], "차변·대변 규칙을 말로 설명할 수 있나?"),
+      mk("파이썬 리스트 컴프리헨션", "코딩", 9, 3, [[9, "good"], [8, "good"], [6, "good"]]),
+      mk("영어 단어 Day 12 (50개)", "영어", null, 0, []),
+      mk("통계 · 조건부확률", "통계", 16, 4, [[16, "good"], [15, "good"], [13, "good"], [9, "good"]], "베이즈 정리 예시 하나 떠올리기"),
+    ];
+  }
+  function showExamples() {
+    isExample = true;
+    items = new Map(exampleItems().map(i => [i.id, i]));
+  }
+  function clearExamples() {
+    isExample = false;
+    items = new Map();
+  }
+
+  // ---------- 분류 ----------
+  function buckets() {
+    const overdue = [], due = [], plan = [], done = [];
+    for (const it of items.values()) {
+      const doneToday = (it.history || []).some(h => h.d === TODAY);
+      if (!it.learnedAt) {
+        if (it.planDate <= TODAY) plan.push(it);
+      } else if (!it.mastered && it.nextDue) {
+        if (it.nextDue < TODAY) overdue.push(it);
+        else if (it.nextDue === TODAY) due.push(it);
+        else if (doneToday) done.push(it);
+      } else if (doneToday) done.push(it);
+    }
+    overdue.sort((a, b) => a.nextDue.localeCompare(b.nextDue));
+    plan.sort((a, b) => a.planDate.localeCompare(b.planDate));
+    return { overdue, due, plan, done };
+  }
+  function streak() {
+    const days = new Set();
+    for (const it of items.values()) for (const h of it.history || []) days.add(h.d);
+    let d = days.has(TODAY) ? TODAY : addDays(TODAY, -1), n = 0;
+    while (days.has(d)) { n++; d = addDays(d, -1); }
+    return n;
+  }
+
+  // ---------- 렌더 ----------
+  function stageBar(it) {
+    let s = "";
+    for (let i = 0; i < OFFSETS.length; i++) {
+      const cls = it.mastered || i < it.stage ? "on" : (it.learnedAt && i === it.stage ? "next" : "");
+      s += `<i class="${cls}" title="${LABELS[i]}"></i>`;
+    }
+    return `<span class="stages" aria-label="복습 단계 ${it.mastered ? 6 : it.stage}/6">${s}</span>`;
+  }
+  function retHtml(it) {
+    const r = retention(it);
+    if (r == null) return "";
+    const p = Math.round(r * 100);
+    const cls = p < 50 ? "low" : p < 75 ? "mid" : "high";
+    return `<span>기억 추정 <b class="ret ${cls}">${p}%</b></span>`;
+  }
+  function card(it, kind) {
+    const lock = busy.has(it.id) ? " disabled" : "";
+    let status = "", actions = "";
+    if (kind === "plan") {
+      const late = diffDays(it.planDate, TODAY);
+      status = late > 0 ? `<span class="chip bad">${late}일 밀림</span>` : `<span class="chip mark">오늘 학습</span>`;
+      actions = `<button class="btn primary" data-act="learn" data-id="${it.id}"${lock}>공부 끝, 복습 시작</button>`;
+    } else if (kind === "overdue" || kind === "due") {
+      const late = diffDays(it.nextDue, TODAY);
+      status = `<span class="chip${late > 0 ? " bad" : ""}">${LABELS[it.stage]} 복습${late > 0 ? " · " + late + "일 밀림" : ""}</span>`;
+      actions = `<button class="btn good" data-act="good" data-id="${it.id}"${lock}>기억남</button>
+                 <button class="btn warn" data-act="hard" data-id="${it.id}"${lock}>헷갈림</button>
+                 <button class="btn bad" data-act="forgot" data-id="${it.id}"${lock}>잊음</button>`;
+    } else if (kind === "done") {
+      const last = it.history[it.history.length - 1];
+      const word = { good: "기억남", hard: "헷갈림", forgot: "잊음", learned: "학습 완료" }[last.r];
+      status = `<span class="chip good">오늘 ${word}</span>`;
+      status += it.mastered ? ` <span>장기기억 도달</span>` : ` <span>다음 <span class="mono">${fmtShort(it.nextDue)}</span></span>`;
+    } else { // all
+      if (it.mastered) status = `<span class="chip good">장기기억</span>`;
+      else if (!it.learnedAt) status = `<span class="chip mark">학습 예정 <span class="mono">${fmtShort(it.planDate)}</span></span>`;
+      else status = `<span class="chip${it.nextDue < TODAY ? " bad" : ""}">다음 ${LABELS[it.stage]} · <span class="mono">${fmtShort(it.nextDue)}</span></span>`;
+      actions = `<button class="btn ghost" data-act="del" data-id="${it.id}">삭제</button>`;
+    }
+    const cls = kind === "all" ? (it.mastered ? "mastered" : !it.learnedAt ? "plan" : it.nextDue < TODAY ? "overdue" : "due") : kind;
+    return `<article class="card ${cls}">
+      <div class="card-main">
+        <div class="card-title">${esc(it.title)}</div>
+        <div class="meta">${it.subject ? `<span class="chip">${esc(it.subject)}</span>` : ""}${status}${it.learnedAt ? stageBar(it) : ""}${retHtml(it)}</div>
+        ${it.note ? `<div class="note">${esc(it.note)}</div>` : ""}
+      </div>
+      <div class="actions">${actions}</div>
+    </article>`;
+  }
+  function group(el, title, list, kind, emptyText) {
+    if (!list.length && !emptyText) { el.innerHTML = ""; return; }
+    el.innerHTML = `<div class="group-head"><h2>${title}</h2><span class="count">${list.length}</span></div>
+      <div class="list">${list.length ? list.map(i => card(i, kind)).join("") : `<div class="empty">${emptyText}</div>`}</div>`;
+  }
+
+  function renderHeader(b) {
+    const d = parse(TODAY);
+    document.getElementById("today-label").textContent = `${d.getFullYear()}.${pad(d.getMonth() + 1)}.${pad(d.getDate())} (${WD[d.getDay()]})`;
+    const todo = b.overdue.length + b.due.length + b.plan.length;
+    const total = todo + b.done.length;
+    document.getElementById("summary").innerHTML = `
+      <div class="${b.overdue.length ? "is-bad" : ""}"><b>${b.overdue.length}</b><span>밀린 복습</span></div>
+      <div><b>${b.due.length}</b><span>오늘 복습</span></div>
+      <div><b>${b.plan.length}</b><span>오늘 학습</span></div>
+      <div><b>${streak()}</b><span>연속 일수</span></div>`;
+    const pct = total ? Math.round(b.done.length / total * 100) : 0;
+    document.getElementById("progress-bar").style.width = pct + "%";
+    document.getElementById("progress-text").textContent = total
+      ? (todo ? `오늘 ${total}개 중 ${b.done.length}개 완료 (${pct}%). 남은 ${todo}개를 끝내면 오늘 복습이 닫힙니다.` : `오늘 할 일 ${total}개를 모두 끝냈어요.`)
+      : "오늘 예정된 복습이 없어요. 새로 배울 것을 계획에 추가하세요.";
+    document.getElementById("example-banner").hidden = !isExample;
+    setSync();
+  }
+
+  function renderToday(b) {
+    group(document.getElementById("g-overdue"), "밀린 복습 · 먼저 하세요", b.overdue, "overdue");
+    group(document.getElementById("g-due"), "오늘 복습", b.due, "due", b.overdue.length ? "" : "오늘 복습할 항목이 없어요.");
+    group(document.getElementById("g-plan"), "오늘 학습 계획", b.plan, "plan", "오늘 학습할 계획이 없어요. 위에서 추가하세요.");
+    group(document.getElementById("g-done"), "오늘 끝낸 것", b.done, "done");
+  }
+
+  function dayLoad(day) {
+    const rev = [], learnL = [];
+    for (const it of items.values()) {
+      if (!it.learnedAt) { if (it.planDate === day || (day === TODAY && it.planDate < TODAY)) learnL.push(it); }
+      else if (!it.mastered && it.nextDue && (it.nextDue === day || (day === TODAY && it.nextDue < TODAY))) rev.push(it);
+    }
+    return { rev, learnL };
+  }
+  function renderPlan() {
+    const days = Array.from({ length: 14 }, (_, i) => addDays(TODAY, i));
+    const loads = days.map(d => { const l = dayLoad(d); return l.rev.length + l.learnL.length; });
+    const max = Math.max(1, ...loads);
+    if (!selDay || selDay < TODAY) selDay = TODAY;
+    document.getElementById("forecast").innerHTML = days.map((d, i) => {
+      const dt = parse(d);
+      return `<div class="fc-col${d === selDay ? " sel" : ""}" data-day="${d}" role="button" tabindex="0" aria-label="${fmtShort(d)} ${loads[i]}개">
+        <span class="fc-n">${loads[i] || ""}</span>
+        <span class="fc-bar${i === 0 ? " today" : ""}" style="height:${loads[i] / max * 70}%"></span>
+        <span class="fc-d">${i === 0 ? "오늘" : dt.getDate()}</span></div>`;
+    }).join("");
+    const l = dayLoad(selDay);
+    const el = document.getElementById("g-day");
+    const head = `<div class="group-head"><h2>${selDay === TODAY ? "오늘" : fmtShort(selDay)} 할 일</h2><span class="count">복습 ${l.rev.length} · 학습 ${l.learnL.length}</span></div>`;
+    const rows = [...l.rev.map(i => card(i, "all")), ...l.learnL.map(i => card(i, "all"))].join("");
+    el.innerHTML = head + `<div class="list">${rows || `<div class="empty">이날은 비어 있어요. 새 학습을 이날로 계획하면 복습이 겹치지 않아요.</div>`}</div>`;
+  }
+
+  function renderAll() {
+    const sel = document.getElementById("filter-subject");
+    const subjects = [...new Set([...items.values()].map(i => i.subject).filter(Boolean))].sort();
+    const cur = sel.value;
+    sel.innerHTML = `<option value="">모든 과목</option>` + subjects.map(s => `<option${s === cur ? " selected" : ""}>${esc(s)}</option>`).join("");
+    document.getElementById("subjects").innerHTML = subjects.map(s => `<option value="${esc(s)}">`).join("");
+    const list = [...items.values()].filter(i => !cur || i.subject === cur)
+      .sort((a, b) => (a.mastered - b.mastered) || String(a.nextDue || a.planDate).localeCompare(String(b.nextDue || b.planDate)));
+    const mastered = list.filter(i => i.mastered).length;
+    document.getElementById("all-count").textContent = `${list.length}개 · 장기기억 ${mastered}개`;
+    group(document.getElementById("g-all"), "모든 항목", list, "all", "아직 항목이 없어요.");
+  }
+
+  function render() {
+    const b = buckets();
+    renderHeader(b);
+    if (tab === "today") renderToday(b);
+    if (tab === "plan") renderPlan();
+    if (tab === "all") renderAll();
+    if (tab === "curve") renderCurve();
+  }
+
+  // ---------- 곡선 ----------
+  function renderCurve() {
+    const W = 640, H = 280, L = 44, R = 16, T = 14, B = 34;
+    const maxT = 32;
+    const x = t => L + (t / maxT) * (W - L - R);
+    const y = p => T + (1 - p / 100) * (H - T - B);
+    let g = "";
+    [0, 25, 50, 75, 100].forEach(p => {
+      g += `<line x1="${L}" x2="${W - R}" y1="${y(p)}" y2="${y(p)}" stroke="var(--grid)" stroke-width="1"/>`;
+      g += `<text x="${L - 8}" y="${y(p) + 4}" text-anchor="end">${p}%</text>`;
+    });
+    OFFSETS.forEach((o, i) => {
+      g += `<line x1="${x(o)}" x2="${x(o)}" y1="${T}" y2="${H - B}" stroke="var(--grid)" stroke-width="1" stroke-dasharray="3 3"/>`;
+      if (i > 0) g += `<text x="${x(o)}" y="${H - B + 18}" text-anchor="${i === 1 ? "start" : i === OFFSETS.length - 1 ? "end" : "middle"}">${LABELS[i]}</text>`;
+    });
+    // 에빙하우스 실측 (경과일, 유지율%)
+    const eb = [[0, 100], [20 / 1440, 58.2], [1 / 24, 44.2], [9 / 24, 35.8], [1, 33.7], [2, 27.8], [6, 25.4], [31, 21.1]];
+    const ebPath = eb.map((p, i) => (i ? "L" : "M") + x(p[0]).toFixed(1) + "," + y(p[1]).toFixed(1)).join(" ");
+    g += `<path d="${ebPath}" fill="none" stroke="var(--bad)" stroke-width="2"/>`;
+    eb.slice(1).forEach(p => g += `<circle cx="${x(p[0])}" cy="${y(p[1])}" r="3" fill="var(--bad)"/>`);
+    // 주기 복습 모델: 당일 복습은 학습 후 약 0.4일(저녁)로 표시
+    const rv = [0.4, 1, 3, 7, 15, 30];
+    let d = "", last = 0, n = 0, prevR = 100;
+    for (let t = 0; t <= maxT + 1e-9; t += 0.05) {
+      const tt = Math.round(t * 100) / 100;
+      while (n < rv.length && tt >= rv[n]) {
+        const before = 100 * Math.exp(-(rv[n] - last) / (S0 * Math.pow(GROWTH, n)));
+        d += `L${x(rv[n]).toFixed(1)},${y(before).toFixed(1)} L${x(rv[n]).toFixed(1)},${y(100).toFixed(1)} `;
+        g += `<circle cx="${x(rv[n])}" cy="${y(before)}" r="3" fill="var(--accent)"/>`;
+        last = rv[n]; n++;
+      }
+      const r = 100 * Math.exp(-(tt - last) / (S0 * Math.pow(GROWTH, n)));
+      d += (d ? "L" : "M") + x(tt).toFixed(1) + "," + y(r).toFixed(1) + " ";
+      prevR = r;
+    }
+    g += `<path d="${d}" fill="none" stroke="var(--accent)" stroke-width="2"/>`;
+    g += `<text x="${x(31)}" y="${y(21.1) + 16}" text-anchor="end" style="fill:var(--bad)">21%</text>`;
+    g += `<text x="${x(maxT)}" y="${y(prevR) - 8}" text-anchor="end" style="fill:var(--accent)">${Math.round(prevR)}%</text>`;
+    document.getElementById("chart").innerHTML = g;
+
+    // 주기 표
+    let rows = "", lastOff = 0;
+    OFFSETS.forEach((o, i) => {
+      const gap = o - lastOff;
+      const before = i === 0 ? null : Math.round(100 * Math.exp(-gap / (S0 * Math.pow(GROWTH, i))));
+      rows += `<tr><td>${i + 1}회차</td><td class="mono">${LABELS[i]}</td><td class="mono">${i === 0 ? "자기 전" : "+" + gap + "일"}</td><td class="mono">${before == null ? "—" : before + "%"}</td></tr>`;
+      lastOff = o;
+    });
+    document.getElementById("sched-body").innerHTML = rows;
+  }
+
+  // ---------- 알림 ----------
+  let toastTimer = null;
+  function toast(msg, undo) {
+    const el = document.getElementById("toast");
+    document.getElementById("toast-msg").textContent = msg;
+    const ub = document.getElementById("toast-undo");
+    lastUndo = undo || null;
+    ub.hidden = !undo;
+    el.hidden = false;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { el.hidden = true; lastUndo = null; }, 5000);
+  }
+  document.getElementById("toast-undo").addEventListener("click", () => {
+    if (lastUndo) { const u = lastUndo; lastUndo = null; put(u); }
+    document.getElementById("toast").hidden = true;
+  });
+
+  // ---------- 이벤트 ----------
+  const pendingDel = new Set();
+  document.addEventListener("click", e => {
+    const b = e.target.closest("button[data-act]");
+    if (!b) return;
+    const id = b.dataset.id, act = b.dataset.act;
+    const it = items.get(id);
+    if (!it) return;
+    if (it.example) { toast("예시 항목이에요. 위 입력칸에 내 첫 학습을 추가해 보세요."); return; }
+    if (act === "del") {
+      if (!pendingDel.has(id)) {
+        pendingDel.add(id); b.textContent = "정말 삭제"; b.classList.add("bad");
+        setTimeout(() => { pendingDel.delete(id); if (b.isConnected) { b.textContent = "삭제"; b.classList.remove("bad"); } }, 3000);
+        return;
+      }
+      pendingDel.delete(id);
+      const backup = clone(it);
+      remove(id);
+      toast("삭제했어요.", backup);
+      return;
+    }
+    const before = clone(it);
+    const next = clone(it);
+    if (act === "learn") { learn(next); put(next); toast("학습 완료. 오늘 자기 전에 한 번 더 떠올려 보세요.", before); return; }
+    review(next, act);
+    put(next);
+    const msg = next.mastered ? "장기기억에 도달했어요."
+      : act === "good" ? `다음 복습 ${fmtShort(next.nextDue)} (${LABELS[next.stage]})`
+      : act === "hard" ? "내일 같은 회차로 한 번 더 봅니다."
+      : "D+1 회차부터 다시 시작합니다. 메모의 질문으로 떠올려 보세요.";
+    toast(msg, before);
+  });
+
+  document.getElementById("add-form").addEventListener("submit", e => {
+    e.preventDefault();
+    const title = document.getElementById("f-title").value.trim();
+    if (!title) return;
+    const planDate = document.getElementById("f-date").value || TODAY;
+    const it = {
+      id: uid(), title,
+      subject: document.getElementById("f-subject").value.trim(),
+      note: document.getElementById("f-note").value.trim(),
+      planDate, learnedAt: null, stage: 0, nextDue: null, mastered: false,
+      history: [], createdAt: Date.now()
+    };
+    const already = document.getElementById("f-learned").checked;
+    if (already) learn(it);
+    put(it);
+    document.getElementById("f-title").value = "";
+    document.getElementById("f-note").value = "";
+    document.getElementById("f-learned").checked = false;
+    toast(already ? "추가했어요. 오늘 자기 전 복습부터 시작합니다."
+      : planDate === TODAY ? "오늘 학습 계획에 추가했어요." : `${fmtShort(planDate)} 학습 계획에 추가했어요.`);
+  });
+
+  document.querySelectorAll("nav.tabs button").forEach(b => b.addEventListener("click", () => setTab(b.dataset.tab)));
+  function setTab(t) {
+    tab = t;
+    document.querySelectorAll("nav.tabs button").forEach(b => b.setAttribute("aria-selected", String(b.dataset.tab === t)));
+    document.querySelectorAll(".tabpanel").forEach(p => {
+      const on = p.id === "tab-" + t;
+      p.hidden = !on;
+      p.style.display = on ? "flex" : "";
+    });
+    try { localStorage.setItem(LS_TAB, t); } catch (e) {}
+    render();
+  }
+  document.getElementById("forecast").addEventListener("click", e => {
+    const c = e.target.closest(".fc-col"); if (!c) return;
+    selDay = c.dataset.day; renderPlan();
+  });
+  document.getElementById("forecast").addEventListener("keydown", e => {
+    if (e.key !== "Enter" && e.key !== " ") return;
+    const c = e.target.closest(".fc-col"); if (!c) return;
+    e.preventDefault(); selDay = c.dataset.day; renderPlan();
+  });
+  document.getElementById("filter-subject").addEventListener("change", renderAll);
+
+  // 자정이 지나면 날짜 갱신
+  function tick() { const t = ymd(new Date()); if (t !== TODAY) { TODAY = t; document.getElementById("f-date").value = TODAY; render(); } }
+  setInterval(tick, 60000);
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) tick(); });
+
+  // ---------- 시작 ----------
+  document.getElementById("f-date").value = TODAY;
+  try { const t = localStorage.getItem(LS_TAB); if (t && document.getElementById("tab-" + t)) tab = t; } catch (e) {}
+
+  function applyLoaded(obj) {
+    const list = Object.values(obj || {});
+    if (list.length) { isExample = false; items = new Map(list.map(i => [i.id, i])); }
+    else if (!items.size || isExample) showExamples();
+    render();
+  }
+
+  function useLocal() {
+    backend = "local";
+    applyLoaded(loadLocal());
+  }
+
+  showExamples();
+  setTab(tab);
+
+  if (window.claude && typeof window.claude.use === "function") {
+    window.claude.use("db").then(ns => {
+      if (!ns) { useLocal(); return; }
+      db = ns; backend = "db";
+      db.collection("items").onSnapshot(snap => {
+        const obj = {};
+        snap.docs.forEach(d => { if (d.exists) { const v = d.data(); obj[v.id || d.id] = { ...v, id: v.id || d.id }; } });
+        if (!snap.size && !isExample && items.size && snap.metadata.fromCache) return;
+        if (snap.size) { isExample = false; items = new Map(Object.entries(obj)); render(); }
+        else applyLoaded({});
+      }, () => { useLocal(); toast("클라우드 연결이 끊겨 이 브라우저에 저장합니다."); });
+    }).catch(useLocal);
+  } else {
+    useLocal();
+  }
+})();
+</script>
