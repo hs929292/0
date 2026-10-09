@@ -1,0 +1,356 @@
+<title>감사 버튼</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#F6F3EE">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@400;500;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: one narrow column, a single large "drop a bead in the jar" button in the middle, records stacked below */
+:root{
+  --bg:#F4F2F7; --surface:#FFFFFF; --surface-2:#ECE8F2; --line:#DCD6E6;
+  --ink:#2A2238; --ink-2:#615878; --ink-3:#958DA8;
+  --accent:#E9A21B; --accent-deep:#B8740A; --accent-ink:#2B1A00; --accent-soft:#FBEFD3;
+  --plum:#5B3F8C; --plum-soft:#E6DEF4;
+  --h0:#E9E5EF; --h1:#F7DDA2; --h2:#F0C063; --h3:#E39E1E; --h4:#B16E06;
+  --f-display:"Gowun Batang","Noto Serif KR",serif;
+  --f-body:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#15121C; --surface:#1E1A28; --surface-2:#282233; --line:#352E43;
+    --ink:#EEEAF5; --ink-2:#B1A9C4; --ink-3:#7A7290;
+    --accent:#F2B33D; --accent-deep:#F6C66A; --accent-ink:#241500; --accent-soft:#3A2C12;
+    --plum:#B79BF0; --plum-soft:#2E2445;
+    --h0:#262030; --h1:#4A3A1A; --h2:#7A5A18; --h3:#C08A1E; --h4:#F4BE4E;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#15121C; --surface:#1E1A28; --surface-2:#282233; --line:#352E43;
+  --ink:#EEEAF5; --ink-2:#B1A9C4; --ink-3:#7A7290;
+  --accent:#F2B33D; --accent-deep:#F6C66A; --accent-ink:#241500; --accent-soft:#3A2C12;
+  --plum:#B79BF0; --plum-soft:#2E2445;
+  --h0:#262030; --h1:#4A3A1A; --h2:#7A5A18; --h3:#C08A1E; --h4:#F4BE4E;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.6;-webkit-tap-highlight-color:transparent}
+.wrap{max-width:520px;margin:0 auto;padding-inline:16px;padding-block:20px 56px;display:flex;flex-direction:column;gap:20px}
+h1,h2{margin:0;text-wrap:balance}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+
+header{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
+h1{font-family:var(--f-display);font-weight:700;font-size:24px;letter-spacing:-.01em}
+.today-date{color:var(--ink-2);font-size:14px}
+.sync{font-size:12px;color:var(--ink-3)}
+
+/* Hero: count + button */
+.hero{display:flex;flex-direction:column;align-items:center;gap:14px;padding-block:8px 4px}
+.count-label{font-size:13px;color:var(--ink-2);letter-spacing:.04em}
+.count{font-family:var(--f-display);font-weight:700;font-size:64px;line-height:1;font-variant-numeric:tabular-nums;color:var(--ink)}
+.count small{font-size:22px;color:var(--ink-2);margin-left:4px}
+.count.bump{animation:bump .35s ease-out}
+@keyframes bump{0%{transform:scale(1)}40%{transform:scale(1.12)}100%{transform:scale(1)}}
+
+.btn-zone{position:relative;width:min(68vw,240px);aspect-ratio:1;max-width:100%;display:grid;place-items:center}
+.thanks{position:relative;width:100%;height:100%;border-radius:50%;border:0;cursor:pointer;
+  background:radial-gradient(circle at 35% 30%,#FFE3A3 0%,var(--accent) 55%,var(--accent-deep) 100%);
+  color:var(--accent-ink);font-family:var(--f-display);font-weight:700;font-size:30px;letter-spacing:.02em;
+  box-shadow:0 10px 0 var(--accent-deep),0 18px 30px rgba(120,70,0,.25);
+  transition:transform .08s ease,box-shadow .08s ease;user-select:none;touch-action:manipulation;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+.thanks span{font-family:var(--f-body);font-size:13px;font-weight:500;opacity:.75;letter-spacing:0}
+.thanks:active,.thanks.pressed{transform:translateY(8px);box-shadow:0 2px 0 var(--accent-deep),0 6px 12px rgba(120,70,0,.25)}
+.thanks:focus-visible{outline:3px solid var(--plum);outline-offset:6px}
+.ring{position:absolute;inset:0;border-radius:50%;border:3px solid var(--accent);pointer-events:none;animation:ring .7s ease-out forwards}
+@keyframes ring{from{transform:scale(1);opacity:.8}to{transform:scale(1.45);opacity:0}}
+.float{position:absolute;top:10%;left:50%;font-family:var(--f-display);font-weight:700;font-size:22px;color:var(--accent-deep);pointer-events:none;animation:float .9s ease-out forwards}
+@keyframes float{from{transform:translate(-50%,0);opacity:1}to{transform:translate(-50%,-70px);opacity:0}}
+
+.note-row{display:flex;gap:8px;width:100%}
+.note-row input{flex:1;min-width:0;font:inherit;font-size:15px;padding:11px 14px;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--ink)}
+.note-row input::placeholder{color:var(--ink-3)}
+.note-row input:focus-visible{outline:2px solid var(--plum);outline-offset:1px;border-color:transparent}
+.hint{font-size:12px;color:var(--ink-3);text-align:center;margin:-4px 0 0}
+
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 14px;border-radius:12px;font-size:14px;display:flex;gap:12px;align-items:center;box-shadow:0 8px 24px rgba(0,0,0,.2);z-index:5;max-width:calc(100% - 32px)}
+.toast span{white-space:nowrap}
+.toast button{white-space:nowrap;font:inherit;font-weight:700;background:none;border:0;color:var(--accent);cursor:pointer;padding:2px 4px}
+
+/* Stats strip */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.stats div{background:var(--surface);padding:12px 10px;display:flex;flex-direction:column;align-items:center;gap:0}
+.stats b{font-family:var(--f-mono);font-size:20px;font-weight:500;font-variant-numeric:tabular-nums}
+.stats span{font-size:12px;color:var(--ink-2)}
+
+section{display:flex;flex-direction:column;gap:10px}
+h2{font-size:13px;font-weight:700;letter-spacing:.06em;color:var(--ink-2)}
+.sec-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.sec-head .meta{font-size:12px;color:var(--ink-3)}
+
+/* Week bars */
+.week{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;align-items:end;height:150px;padding:12px 12px 8px;background:var(--surface);border:1px solid var(--line);border-radius:14px}
+.bar{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:4px;height:100%;min-width:0}
+.bar .v{font-family:var(--f-mono);font-size:12px;color:var(--ink-2);font-variant-numeric:tabular-nums}
+.bar .col{width:100%;max-width:30px;border-radius:6px 6px 3px 3px;background:var(--h2);min-height:3px;transition:height .3s ease}
+.bar .col.zero{background:var(--h0)}
+.bar.is-today .col{background:var(--accent)}
+.bar .d{font-size:12px;color:var(--ink-3)}
+.bar.is-today .d{color:var(--ink);font-weight:700}
+
+/* Heatmap */
+.heat-wrap{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px;overflow-x:auto}
+.heat{display:grid;grid-auto-flow:column;grid-template-rows:repeat(7,1fr);gap:4px;width:max-content;margin-inline:auto}
+.heat i{display:block;width:clamp(14px,4.6vw,20px);aspect-ratio:1;border-radius:4px;background:var(--h0)}
+.heat i.l1{background:var(--h1)}.heat i.l2{background:var(--h2)}.heat i.l3{background:var(--h3)}.heat i.l4{background:var(--h4)}
+.heat i.future{background:transparent}
+.heat i.today{outline:2px solid var(--plum);outline-offset:1px}
+.legend{display:flex;justify-content:flex-end;align-items:center;gap:4px;font-size:11px;color:var(--ink-3);margin-top:8px}
+.legend i{width:11px;height:11px;border-radius:3px;display:inline-block}
+
+/* Today log */
+.log{list-style:none;margin:0;padding:0;background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.log li{display:flex;gap:12px;align-items:baseline;padding:10px 14px;border-top:1px solid var(--line)}
+.log li:first-child{border-top:0}
+.log .t{font-family:var(--f-mono);font-size:13px;color:var(--ink-3);flex:none}
+.log .n{min-width:0;overflow-wrap:anywhere}
+.log .n.empty{color:var(--ink-3)}
+.log .num{margin-left:auto;font-family:var(--f-mono);font-size:12px;color:var(--plum);flex:none}
+.empty-state{background:var(--surface);border:1px dashed var(--line);border-radius:14px;padding:18px;text-align:center;color:var(--ink-2);font-size:14px}
+
+@media (prefers-reduced-motion: reduce){
+  .count.bump,.ring,.float{animation:none}
+  .ring,.float{display:none}
+}
+</style>
+
+<div class="wrap">
+  <header>
+    <div>
+      <h1>감사 버튼</h1>
+      <div class="today-date" id="todayDate"></div>
+    </div>
+    <div class="sync" id="sync">불러오는 중…</div>
+  </header>
+
+  <div class="hero">
+    <div class="count-label">오늘 감사한 횟수</div>
+    <div class="count" id="count">0<small>번</small></div>
+
+    <div class="btn-zone" id="btnZone">
+      <button class="thanks" id="thanks" type="button" aria-label="감사 한 번 기록하기">
+        감사합니다
+        <span>누를 때마다 +1</span>
+      </button>
+    </div>
+
+    <div class="note-row">
+      <input id="note" type="text" maxlength="80" autocomplete="off" enterkeyhint="done" placeholder="무엇이 감사했나요? (적지 않아도 돼요)">
+    </div>
+    <p class="hint">한 줄을 적고 버튼을 누르면 오늘 기록에 함께 남아요.</p>
+  </div>
+
+  <div class="stats">
+    <div><b id="streak">0</b><span>연속 감사일</span></div>
+    <div><b id="weekTotal">0</b><span>최근 7일</span></div>
+    <div><b id="allTotal">0</b><span>전체 누적</span></div>
+  </div>
+
+  <section>
+    <div class="sec-head"><h2>최근 7일</h2><span class="meta" id="weekAvg"></span></div>
+    <div class="week" id="week"></div>
+  </section>
+
+  <section>
+    <div class="sec-head"><h2>12주 감사 달력</h2><span class="meta" id="bestDay"></span></div>
+    <div class="heat-wrap">
+      <div class="heat" id="heat"></div>
+      <div class="legend">적음 <i style="background:var(--h0)"></i><i style="background:var(--h1)"></i><i style="background:var(--h2)"></i><i style="background:var(--h3)"></i><i style="background:var(--h4)"></i> 많음</div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><h2>오늘의 감사 기록</h2><span class="meta" id="logMeta"></span></div>
+    <div id="logEmpty" class="empty-state">아직 오늘 누른 기록이 없어요. 위의 버튼을 눌러 첫 감사를 남겨보세요.</div>
+    <ol class="log" id="log" hidden></ol>
+  </section>
+</div>
+
+<div class="toast" id="toast" hidden role="status"><span id="toastText"></span><button type="button" id="undo">되돌리기</button></div>
+
+<script>
+(function(){
+  "use strict";
+  var LS_KEY = "gratitude-button-v1";
+  var MAX_TAPS = 300;                 // per-day detail entries kept (the count itself is unlimited)
+  var WD = ["일","월","화","수","목","금","토"];
+
+  // days: { "2026-10-09": { date, count, taps:[{t, n}] } }
+  var days = {};
+  var store = null;       // db collection when the shared store is available
+  var mode = "local";
+  var undoTimer = null;
+
+  function pad(n){ return (n<10?"0":"")+n; }
+  function keyOf(d){ return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate()); }
+  function addDays(d,n){ var x=new Date(d.getFullYear(),d.getMonth(),d.getDate()); x.setDate(x.getDate()+n); return x; }
+  function todayKey(){ return keyOf(new Date()); }
+  function countOf(k){ return days[k] ? (days[k].count||0) : 0; }
+  function $(id){ return document.getElementById(id); }
+
+  // ---------- storage ----------
+  function loadLocal(){
+    try{ var raw = localStorage.getItem(LS_KEY); if(raw){ var v = JSON.parse(raw); if(v && typeof v==="object") days = v; } }catch(e){}
+  }
+  function saveLocal(){
+    try{ localStorage.setItem(LS_KEY, JSON.stringify(days)); }catch(e){}
+  }
+  function persist(k){
+    saveLocal();
+    if(store){
+      var d = days[k];
+      var ref = store.doc("d-"+k);
+      var p = (d && d.count>0) ? ref.set({date:k, count:d.count, taps:d.taps||[]}) : ref.delete();
+      p.then(function(){ setSync("저장됨 · 어느 기기에서 열어도 같은 기록"); })
+       .catch(function(e){ setSync(e && e.code==="quota_exceeded" ? "저장 공간이 가득 찼어요" : "저장 실패 · 이 기기에만 남았어요"); });
+    }
+  }
+  function setSync(t){ $("sync").textContent = t; }
+
+  // ---------- actions ----------
+  function tap(){
+    var k = todayKey();
+    var d = days[k] || (days[k] = {date:k, count:0, taps:[]});
+    var note = $("note").value.trim();
+    d.count += 1;
+    d.taps = (d.taps||[]).concat([{t:Date.now(), n:note}]).slice(-MAX_TAPS);
+    $("note").value = "";
+    persist(k);
+    render();
+    celebrate();
+    showToast("감사 "+d.count+"번째를 기록했어요");
+  }
+  function undo(){
+    var k = todayKey(), d = days[k];
+    if(!d || d.count<=0) return;
+    d.count -= 1;
+    if(d.taps && d.taps.length) d.taps = d.taps.slice(0,-1);
+    if(d.count===0) delete days[k];
+    persist(k);
+    render();
+    hideToast();
+  }
+
+  function celebrate(){
+    try{ if(navigator.vibrate) navigator.vibrate(18); }catch(e){}
+    var c = $("count"); c.classList.remove("bump"); void c.offsetWidth; c.classList.add("bump");
+    var zone = $("btnZone");
+    var r = document.createElement("div"); r.className="ring"; zone.appendChild(r);
+    var f = document.createElement("div"); f.className="float"; f.textContent="+1"; zone.appendChild(f);
+    setTimeout(function(){ r.remove(); f.remove(); }, 950);
+  }
+  function showToast(t){
+    $("toastText").textContent = t; $("toast").hidden = false;
+    clearTimeout(undoTimer); undoTimer = setTimeout(hideToast, 4000);
+  }
+  function hideToast(){ $("toast").hidden = true; }
+
+  // ---------- render ----------
+  function render(){
+    var now = new Date(), tk = keyOf(now);
+    $("todayDate").textContent = (now.getMonth()+1)+"월 "+now.getDate()+"일 "+WD[now.getDay()]+"요일";
+    $("count").innerHTML = countOf(tk)+"<small>번</small>";
+
+    // streak: consecutive days with ≥1, counting back from today (or yesterday if today is still empty)
+    var s = 0, cur = countOf(tk) > 0 ? now : addDays(now,-1);
+    while(countOf(keyOf(cur)) > 0){ s++; cur = addDays(cur,-1); }
+    $("streak").textContent = s;
+
+    var all = 0, best = null;
+    Object.keys(days).forEach(function(k){ var c=countOf(k); all+=c; if(!best || c>countOf(best)) best=k; });
+    $("allTotal").textContent = all;
+    $("bestDay").textContent = best && countOf(best)>0 ? "최고 "+countOf(best)+"번 ("+best.slice(5).replace("-","/")+")" : "";
+
+    // week bars
+    var wk = [], wsum = 0, wmax = 1;
+    for(var i=6;i>=0;i--){ var d=addDays(now,-i), k=keyOf(d), c=countOf(k); wk.push({d:d,k:k,c:c}); wsum+=c; if(c>wmax) wmax=c; }
+    $("weekTotal").textContent = wsum;
+    $("weekAvg").textContent = "하루 평균 "+(Math.round(wsum/7*10)/10)+"번";
+    $("week").innerHTML = wk.map(function(x){
+      var h = x.c ? Math.max(6, Math.round(x.c/wmax*100)) : 3;
+      return '<div class="bar'+(x.k===tk?' is-today':'')+'"><span class="v">'+x.c+'</span>'+
+        '<div class="col'+(x.c?'':' zero')+'" style="height:'+h+'%"></div>'+
+        '<span class="d">'+(x.k===tk?'오늘':WD[x.d.getDay()])+'</span></div>';
+    }).join("");
+
+    // heatmap: 12 weeks, columns = weeks (Sun..Sat rows)
+    var start = addDays(now, -(7*11 + now.getDay()));
+    var cells = [];
+    for(var j=0;j<84;j++){
+      var dd = addDays(start,j), kk = keyOf(dd), cc = countOf(kk);
+      var cls = dd > now ? "future" : cc===0 ? "" : cc<=2 ? "l1" : cc<=5 ? "l2" : cc<=9 ? "l3" : "l4";
+      if(kk===tk) cls += " today";
+      cells.push('<i class="'+cls+'" title="'+kk+' · '+cc+'번"></i>');
+    }
+    $("heat").innerHTML = cells.join("");
+
+    // today log
+    var taps = (days[tk] && days[tk].taps) || [];
+    var log = $("log");
+    $("logEmpty").hidden = taps.length > 0;
+    log.hidden = taps.length === 0;
+    $("logMeta").textContent = taps.length ? "최근 순" : "";
+    log.innerHTML = "";
+    var base = countOf(tk) - taps.length;
+    for(var m=taps.length-1;m>=0;m--){
+      var t = new Date(taps[m].t), li = document.createElement("li");
+      var ts = document.createElement("span"); ts.className="t"; ts.textContent = pad(t.getHours())+":"+pad(t.getMinutes());
+      var ns = document.createElement("span"); ns.className = "n"+(taps[m].n?"":" empty"); ns.textContent = taps[m].n || "감사합니다";
+      var nu = document.createElement("span"); nu.className="num"; nu.textContent = "#"+(base+m+1);
+      li.appendChild(ts); li.appendChild(ns); li.appendChild(nu); log.appendChild(li);
+    }
+  }
+
+  // ---------- boot ----------
+  $("thanks").addEventListener("click", tap);
+  $("note").addEventListener("keydown", function(e){ if(e.key==="Enter"){ e.preventDefault(); tap(); $("note").blur(); } });
+  $("undo").addEventListener("click", undo);
+  // re-render when the date rolls over while the page stays open
+  setInterval(function(){ var k=todayKey(); if(k!==render.k){ render.k=k; render(); } }, 30000);
+  document.addEventListener("visibilitychange", function(){ if(!document.hidden) render(); });
+
+  loadLocal();
+  render.k = todayKey();
+  render();
+  setSync("이 기기에 저장 중");
+
+  if(window.claude && typeof window.claude.use === "function"){
+    Promise.all([window.claude.use("db"), window.claude.use("user")]).then(function(r){
+      var db = r[0], user = r[1];
+      if(!db || !user) return;
+      return user.id().then(function(uid){
+        if(!uid) return;
+        store = db.collection("data/users/"+uid);
+        mode = "cloud";
+        var first = true;
+        store.orderBy("date","desc").limit(400).onSnapshot(function(snap){
+          var next = {};
+          snap.docs.forEach(function(doc){ var v = doc.data(); if(v && v.date) next[v.date] = {date:v.date, count:v.count||0, taps:v.taps||[]}; });
+          if(first){
+            first = false;
+            // carry over anything recorded on this device before the cloud store was reachable
+            Object.keys(days).forEach(function(k){
+              if(!next[k] || (next[k].count||0) < days[k].count){ next[k] = days[k]; store.doc("d-"+k).set({date:k,count:days[k].count,taps:days[k].taps||[]}).catch(function(){}); }
+            });
+          }
+          days = next; saveLocal(); render();
+          setSync("저장됨 · 어느 기기에서 열어도 같은 기록");
+        }, function(){ setSync("이 기기에 저장 중"); store = null; });
+      });
+    }).catch(function(){});
+  }
+})();
+</script>
