@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>제갈량 상소문</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Nanum+Myeongjo:wght@700;800&display=swap">
+<style>
+:root{
+  --bg:#E9DFC9; --paper:#F7F0DF; --paper-2:#EFE5CD; --line:#D6C7A4;
+  --ink:#2A2118; --ink-2:#5E4F3B; --ink-3:#8C7B61;
+  --seal:#B0352A; --seal-ink:#FFF4E8; --seal-soft:#F3DCCF;
+  --gold:#9A7426;
+  --f-display:"Nanum Myeongjo","Noto Serif KR","AppleMyungjo","Batang",serif;
+  --f-body:"Gowun Batang","Noto Serif KR","AppleMyungjo","Batang",serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#15120E; --paper:#1F1A14; --paper-2:#29221A; --line:#3B3226;
+    --ink:#EDE3CF; --ink-2:#C2B49A; --ink-3:#8E8069;
+    --seal:#E0614F; --seal-ink:#1A0F0B; --seal-soft:#3A1F19;
+    --gold:#D2A953;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#15120E; --paper:#1F1A14; --paper-2:#29221A; --line:#3B3226;
+  --ink:#EDE3CF; --ink-2:#C2B49A; --ink-3:#8E8069;
+  --seal:#E0614F; --seal-ink:#1A0F0B; --seal-soft:#3A1F19;
+  --gold:#D2A953;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{
+  background:var(--bg);
+  background-image:radial-gradient(circle at 20% 10%,rgba(255,255,255,.18),transparent 40%),radial-gradient(circle at 85% 90%,rgba(0,0,0,.05),transparent 45%);
+  color:var(--ink);font-family:var(--f-body);font-size:17px;line-height:1.95;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:760px;margin:0 auto;padding:28px 16px 80px}
+
+/* 두루마리 */
+.scroll{position:relative;background:var(--paper);border:1px solid var(--line);border-radius:4px;
+  box-shadow:0 1px 0 rgba(0,0,0,.04),0 18px 40px -24px rgba(60,40,10,.35);padding:44px 52px 48px}
+.scroll::before,.scroll::after{content:"";position:absolute;left:-10px;right:-10px;height:14px;border-radius:7px;
+  background:linear-gradient(var(--gold),color-mix(in srgb,var(--gold) 60%,#000));opacity:.85}
+.scroll::before{top:-8px}.scroll::after{bottom:-8px}
+@media (max-width:600px){.scroll{padding:32px 20px 36px}}
+
+header.top{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:28px}
+.kicker{font-family:var(--f-display);font-weight:800;color:var(--seal);letter-spacing:.3em;font-size:14px}
+h1{font-family:var(--f-display);font-weight:800;font-size:34px;line-height:1.25;margin:6px 0 8px;letter-spacing:-.01em}
+.date{color:var(--ink-2);font-size:15px}
+.meta{color:var(--ink-3);font-size:13.5px;margin-top:4px}
+
+.seal{flex:none;width:68px;height:68px;background:var(--seal);color:var(--seal-ink);border-radius:6px;
+  display:grid;grid-template-columns:1fr 1fr;place-items:center;font-family:var(--f-display);font-weight:800;
+  font-size:21px;line-height:1;padding:6px;transform:rotate(-4deg);box-shadow:inset 0 0 0 2px color-mix(in srgb,var(--seal-ink) 35%,transparent)}
+.seal span{display:block}
+
+nav.days{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:0 0 18px}
+nav.days button{appearance:none;background:transparent;border:1px solid var(--line);color:var(--ink-2);
+  font:inherit;font-size:14px;padding:4px 12px;border-radius:99px;cursor:pointer}
+nav.days button:hover{background:var(--paper-2);color:var(--ink)}
+nav.days button:focus-visible,.act input:focus-visible{outline:2px solid var(--seal);outline-offset:2px}
+#today[hidden]{display:none}
+
+section.so{margin-top:34px}
+.so-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:8px;margin-bottom:14px}
+.so-num{font-family:var(--f-display);font-weight:800;color:var(--seal);font-size:15px;letter-spacing:.15em}
+.so-head h2{font-family:var(--f-display);font-weight:800;font-size:23px;margin:0;flex:1}
+.count{font-size:12.5px;color:var(--ink-3);font-variant-numeric:tabular-nums}
+h3{font-family:var(--f-display);font-weight:700;font-size:18.5px;margin:30px 0 6px;line-height:1.5}
+h3 .ord{color:var(--seal);margin-right:8px}
+p{margin:0 0 14px;text-align:justify;word-break:keep-all;overflow-wrap:anywhere}
+@media (max-width:600px){p{text-align:left}}
+p.lead{color:var(--ink-2)}
+p.close{color:var(--ink-2);border-left:3px solid var(--line);padding-left:14px;margin-top:22px}
+
+.act{margin-top:38px;background:var(--seal-soft);border:1px solid color-mix(in srgb,var(--seal) 35%,transparent);border-radius:6px;padding:18px 20px}
+.act h2{font-family:var(--f-display);font-weight:800;font-size:17px;margin:0 0 6px;color:var(--seal)}
+.act label{display:flex;gap:12px;align-items:flex-start;cursor:pointer;line-height:1.7}
+.act input{width:20px;height:20px;margin-top:5px;accent-color:var(--seal);flex:none}
+.act.done label span{text-decoration:line-through;color:var(--ink-3)}
+.streak{font-size:13px;color:var(--ink-2);margin-top:8px}
+
+footer.sign{margin-top:42px;display:flex;justify-content:flex-end;align-items:center;gap:14px;font-family:var(--f-display);font-weight:700;color:var(--ink-2)}
+footer.sign .seal{width:52px;height:52px;font-size:16px}
+.foot-note{text-align:center;color:var(--ink-3);font-size:12.5px;margin-top:26px;line-height:1.7}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav class="days" aria-label="날짜 이동">
+    <button id="prev" type="button">‹ 지난 상소</button>
+    <button id="today" type="button" hidden>오늘로</button>
+    <button id="next" type="button">다음 상소 ›</button>
+  </nav>
+
+  <article class="scroll">
+    <header class="top">
+      <div>
+        <div class="kicker">臣 亮 言</div>
+        <h1>제갈량 상소문</h1>
+        <div class="date" id="date"></div>
+        <div class="meta" id="meta"></div>
+      </div>
+      <div class="seal" aria-hidden="true"><span>諸</span><span>葛</span><span>亮</span><span>印</span></div>
+    </header>
+
+    <section class="so" id="so1">
+      <div class="so-head"><span class="so-num">第一疏</span><h2>클로드코드 병법</h2><span class="count" id="c1"></span></div>
+      <div id="body1"></div>
+    </section>
+
+    <section class="so" id="so2">
+      <div class="so-head"><span class="so-num">第二疏</span><h2>천하의 길 — 사업과 삶</h2><span class="count" id="c2"></span></div>
+      <div id="body2"></div>
+    </section>
+
+    <aside class="act" id="act">
+      <h2>오늘의 한 걸음</h2>
+      <label><input type="checkbox" id="actCheck"><span id="actText"></span></label>
+      <div class="streak" id="streak"></div>
+    </aside>
+
+    <footer class="sign">
+      <span id="signDate"></span><span>신 량 근배(謹拜)</span>
+      <div class="seal" aria-hidden="true"><span>諸</span><span>葛</span><span>亮</span><span>印</span></div>
+    </footer>
+  </article>
+
+  <p class="foot-note">매일 아침 7시, 또는 컴퓨터를 켤 때 하루 한 번 열립니다.<br>글을 고치려면 같은 폴더의 <b>content.js</b>를 수정하세요.</p>
+</div>
+
+<script src="content.js"></script>
+<script>
+(function(){
+  const S = window.SANGSO;
+  const ORD = ["一","二","三","四","五"];
+  const STEMS = "갑을병정무기경신임계", BRANCH = "자축인묘진사오미신유술해";
+  const WEEK = "일월화수목금토";
+  const PICK = 4;
+
+  const store = {
+    get(k){ try{ return JSON.parse(localStorage.getItem(k)); }catch(e){ return null; } },
+    set(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+  };
+
+  // 날짜마다 같은 결과가 나오는 난수
+  function rng(seed){
+    return function(){
+      seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+      let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+      t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    };
+  }
+  function pick(arr, n, r){
+    const idx = arr.map((_, i) => i);
+    for(let i = idx.length - 1; i > 0; i--){ const j = Math.floor(r() * (i + 1)); [idx[i], idx[j]] = [idx[j], idx[i]]; }
+    return idx.slice(0, n).map(i => arr[i]);
+  }
+  const keyOf = d => d.getFullYear()*10000 + (d.getMonth()+1)*100 + d.getDate();
+  const dayNo = d => Math.floor(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / 864e5);
+
+  function el(tag, cls, text){ const e = document.createElement(tag); if(cls) e.className = cls; if(text != null) e.textContent = text; return e; }
+
+  function build(target, open, pieces, close){
+    target.replaceChildren();
+    const texts = [open];
+    target.append(el("p", "lead", open));
+    pieces.forEach((pc, i) => {
+      const h = el("h3"); h.append(el("span", "ord", ORD[i] + "曰"), document.createTextNode(pc.title));
+      target.append(h); texts.push(pc.title);
+      pc.body.forEach(t => { target.append(el("p", null, t)); texts.push(t); });
+    });
+    target.append(el("p", "close", close)); texts.push(close);
+    const all = texts.join("\n");
+    return { withSpace: all.length, noSpace: all.replace(/\s/g, "").length };
+  }
+
+  let offset = 0;
+  function render(){
+    const d = new Date(); d.setDate(d.getDate() + offset);
+    const key = keyOf(d);
+    const r = rng(key);
+    const lessons = pick(S.ccLessons, PICK, r);
+    const counsels = pick(S.lifeCounsels, PICK, r);
+    const n1 = build(document.getElementById("body1"), S.ccOpen[key % S.ccOpen.length], lessons, S.ccClose[key % S.ccClose.length]);
+    const n2 = build(document.getElementById("body2"), S.lifeOpen[(key >> 1) % S.lifeOpen.length], counsels, S.lifeClose[(key >> 2) % S.lifeClose.length]);
+
+    const fmt = n => n.toLocaleString("ko-KR");
+    document.getElementById("c1").textContent = `${fmt(n1.withSpace)}자`;
+    document.getElementById("c2").textContent = `${fmt(n2.withSpace)}자`;
+    const y = d.getFullYear(), gz = STEMS[(y - 4) % 10] + BRANCH[(y - 4) % 12];
+    document.getElementById("date").textContent = `${y}년 ${d.getMonth()+1}월 ${d.getDate()}일 ${WEEK[d.getDay()]}요일 · ${gz}년`;
+    const total = n1.withSpace + n2.withSpace;
+    document.getElementById("meta").textContent = `모두 ${fmt(total)}자 (공백 빼고 ${fmt(n1.noSpace + n2.noSpace)}자) · 읽는 데 약 ${Math.round(total / 500)}분`;
+    document.getElementById("signDate").textContent = `${gz}년 ${d.getMonth()+1}월 ${d.getDate()}일`;
+    document.title = offset ? `제갈량 상소문 · ${d.getMonth()+1}/${d.getDate()}` : "제갈량 상소문";
+    document.getElementById("today").hidden = offset === 0;
+
+    // 오늘의 한 걸음: 짝수 날은 클로드코드 연습, 홀수 날은 사업·삶
+    const act = (dayNo(d) % 2 === 0 ? lessons[0] : counsels[0]).act;
+    document.getElementById("actText").textContent = act;
+    const done = store.get("sangso.done") || {};
+    const box = document.getElementById("actCheck");
+    box.checked = !!done[key];
+    document.getElementById("act").classList.toggle("done", box.checked);
+    box.onchange = () => {
+      const m = store.get("sangso.done") || {};
+      if(box.checked) m[key] = 1; else delete m[key];
+      store.set("sangso.done", m);
+      document.getElementById("act").classList.toggle("done", box.checked);
+      showStreak();
+    };
+    showStreak();
+    window.scrollTo(0, 0);
+  }
+
+  function showStreak(){
+    const done = store.get("sangso.done") || {};
+    const d = new Date(); let n = 0;
+    if(!done[keyOf(d)]) d.setDate(d.getDate() - 1); // 오늘 아직 안 했어도 어제까지의 연속은 살려 둔다
+    while(done[keyOf(d)]){ n++; d.setDate(d.getDate() - 1); }
+    const total = Object.keys(done).length;
+    document.getElementById("streak").textContent = total
+      ? `연속 ${n}일 · 지금까지 이룬 걸음 ${total}개`
+      : "마치시면 표시해 두소서. 이어지는 날수가 여기 쌓이옵니다.";
+  }
+
+  document.getElementById("prev").onclick = () => { offset--; render(); };
+  document.getElementById("next").onclick = () => { offset++; render(); };
+  document.getElementById("today").onclick = () => { offset = 0; render(); };
+  render();
+})();
+</script>
+</body>
+</html>
