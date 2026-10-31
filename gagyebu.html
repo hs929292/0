@@ -172,6 +172,25 @@ nav.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(-
 
 .set-row{display:flex;flex-direction:column;gap:6px}
 .set-row label{font-weight:700;font-size:14px}
+.fixed-sum{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.fixed-sum div{background:var(--bg);padding:10px 12px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.fixed-sum span{font-size:12px;color:var(--ink-2)}
+.fixed-sum b{font-family:var(--f-mono);font-size:16px;font-weight:600;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.fx{display:grid;grid-template-columns:52px 1fr auto auto;gap:10px;align-items:center;padding:8px 10px;border-radius:10px;background:var(--bg)}
+.fx .dd{font-family:var(--f-mono);font-size:12px;text-align:center;padding:2px 0;border-radius:6px;background:var(--surface-2);color:var(--ink-2)}
+.fx.paid .dd{background:var(--good-soft);color:var(--good)}
+.fx.soon .dd{background:var(--coin-soft);color:var(--coin-deep);font-weight:600}
+.fx .nm{min-width:0;display:flex;flex-direction:column}
+.fx .nm b{font-weight:600;overflow-wrap:anywhere}
+.fx .nm span{font-size:12px;color:var(--ink-3)}
+.fx .amt{font-family:var(--f-mono);font-weight:600;white-space:nowrap}
+.fx .del{appearance:none;border:0;background:none;color:var(--ink-3);font-size:18px;line-height:1;padding:4px}
+.fx-form{display:flex;flex-wrap:wrap;gap:8px}
+.fx-form input,.fx-form select{min-width:0;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);font-size:15px}
+.fx-form #x-name{flex:2 1 150px} .fx-form #x-amt{flex:1 1 110px;font-family:var(--f-mono)} .fx-form #x-day{flex:0 1 92px} .fx-form #x-cat{flex:0 1 100px}
+.insight{font-size:13px;color:var(--ink);background:var(--coin-soft);border-radius:8px;padding:8px 12px}
+.day .fxdot{position:absolute;top:4px;right:4px;width:7px;height:7px;border-radius:50%;background:var(--boss)}
+.day{position:relative}
 .set-row input{font-family:var(--f-mono);font-size:18px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);max-width:260px}
 .prose p{margin:0 0 8px;font-size:14px;color:var(--ink-2);max-width:62ch}
 .prose b{color:var(--ink)}
@@ -272,6 +291,16 @@ nav.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(-
       </div>
     </section>
 
+    <section class="panel" aria-label="이번 달 고정지출">
+      <div class="panel-head"><h2>이번 달 고정지출</h2><button class="btn ghost" type="button" data-goto="set">관리</button></div>
+      <div class="fixed-sum">
+        <div><span>합계</span><b id="fx-total">0</b></div>
+        <div><span>나간 돈</span><b id="fx-paid">0</b></div>
+        <div><span>남은 돈</span><b id="fx-left">0</b></div>
+      </div>
+      <div class="entries" id="fx-upcoming"></div>
+    </section>
+
     <section class="panel" aria-label="저금통과 배지">
       <div class="panel-head"><h2>이번 달 저금통</h2><span class="num" id="piggy-amt">0원</span></div>
       <div class="piggy" id="piggy" aria-hidden="true"></div>
@@ -290,7 +319,7 @@ nav.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(-
         <button class="btn ghost" id="cal-next" type="button">다음 달</button>
       </div>
       <div class="cal" id="cal"></div>
-      <div class="legend"><span><i style="background:var(--good-soft);border-color:var(--good)"></i>한도 안</span><span><i style="background:var(--bad-soft);border-color:var(--bad)"></i>한도 초과</span><span><i style="background:var(--coin-soft);border-color:var(--coin-deep)"></i>무지출</span><span><i></i>기록 없음</span></div>
+      <div class="legend"><span><i style="background:var(--good-soft);border-color:var(--good)"></i>한도 안</span><span><i style="background:var(--bad-soft);border-color:var(--bad)"></i>한도 초과</span><span><i style="background:var(--coin-soft);border-color:var(--coin-deep)"></i>무지출</span><span><i></i>기록 없음</span><span><i style="background:var(--boss);border-color:var(--boss);border-radius:50%"></i>고정지출 결제일</span></div>
     </section>
     <section class="panel">
       <div class="panel-head"><h2 id="sel-title"></h2><span class="small muted num" id="sel-sum"></span></div>
@@ -320,12 +349,26 @@ nav.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(-
         <div class="btns"><button class="btn primary" id="s-save" type="button">저장</button></div>
       </div>
     </section>
+    <section class="panel">
+      <div class="panel-head"><h2>고정지출</h2><span class="small muted num" id="x-sum"></span></div>
+      <p class="small muted" style="margin:0">매달 같은 날 자동으로 나가는 돈이에요. 결제일이 지나면 저절로 '나감'으로 바뀌고, 오늘 체력(생활비)에서는 빠지지 않아요.</p>
+      <form class="fx-form" id="x-form" autocomplete="off">
+        <input id="x-name" placeholder="이름 (예: 월세)" aria-label="고정지출 이름">
+        <input id="x-amt" inputmode="numeric" placeholder="금액" aria-label="금액">
+        <select id="x-day" aria-label="결제일"></select>
+        <select id="x-cat" aria-label="분류"></select>
+        <button class="btn primary" type="submit">추가</button>
+      </form>
+      <div class="entries" id="x-list"></div>
+      <div class="insight" id="x-insight" hidden></div>
+    </section>
     <section class="panel prose">
       <h2>게임 규칙</h2>
       <p><b>체력(오늘 한도)</b> = (이번 달 예산 − 어제까지 쓴 돈) ÷ 남은 날 수. 어제 아끼면 오늘 체력이 늘고, 어제 많이 쓰면 오늘 체력이 줄어요. 매일 아침 다시 계산됩니다.</p>
       <p>처음 시작한 달은 시작한 날부터 월말까지 날짜 수만큼만 예산이 나뉩니다. 10일 남은 날 시작하면 예산의 10/31만 씁니다.</p>
       <p><b>XP</b>: 기록한 날 +10, 한도 안에서 하루 마감 +20, 무지출 날 +30, 오늘의 금지 분류를 지킨 날 +10, 퀘스트 3개 모두 성공 +20, 7일 연속 기록마다 +50, 주간 보스 격파 +100.</p>
       <p><b>주간 보스</b>: 월~일 한 주 예산(하루 기본 한도 × 7)이 보스의 체력이에요. 일요일이 끝날 때까지 이 안에서 쓰면 격파.</p>
+      <p><b>고정지출</b>은 생활비 예산과 따로 셉니다. 한 달에 실제로 나가는 돈 = 고정지출 합계 + 생활비 예산. 고정지출을 3개 이상 등록하면 '새는 돈 탐지기' 배지를 받아요.</p>
       <p><b>연속 기록</b>은 지출이든 무지출 선언이든 하루에 하나만 남기면 이어집니다. 기록을 빼먹은 날은 판정하지 않아요.</p>
     </section>
   </div>
@@ -385,6 +428,8 @@ nav.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(-
   let lastLevel = null;
   const LS_KEY = "coin-quest-ledger-v1";
   const LS_TAB = "coin-quest-tab";
+  const FX_CATS = ["주거", "통신", "구독", "보험", "대출", "교통", "기타"];
+  let fixed = new Map();      // 실제 고정지출
 
   const uid = () => "e" + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
   const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -474,13 +519,38 @@ nav.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(-
     return { days, xp, zeroDays, clearDays, perfectDays, maxRun, bossWins, piggy, monthOver, loggedDays: sorted.length };
   }
 
+  // ---------- 고정지출 ----------
+  // 결제일이 그 달에 없으면(31일 등) 말일로
+  const fxDate = (f, mk) => mk + "-" + pad(Math.min(f.day, dim(mk + "-01")));
+  const fxList = () => isExample && !fixed.size ? exampleFixed() : [...fixed.values()];
+  function exampleFixed() {
+    return [
+      { id: "x1", name: "월세", amt: 450000, day: 25, cat: "주거", example: true },
+      { id: "x2", name: "휴대폰 요금", amt: 55000, day: 15, cat: "통신", example: true },
+      { id: "x3", name: "OTT 구독", amt: 13500, day: 3, cat: "구독", example: true },
+      { id: "x4", name: "실손보험", amt: 32000, day: 10, cat: "보험", example: true },
+    ];
+  }
+  function fxMonth(mk) {
+    const list = fxList().map(f => ({ ...f, date: fxDate(f, mk) })).sort((a, b) => a.date.localeCompare(b.date) || b.amt - a.amt);
+    const total = list.reduce((a, f) => a + f.amt, 0);
+    const paid = list.filter(f => f.date <= TODAY).reduce((a, f) => a + f.amt, 0);
+    return { list, total, paid };
+  }
+  function fxRow(f, withDel) {
+    const dd = Math.round((parse(f.date) - parse(TODAY)) / 86400000);
+    const state = dd <= 0 ? "paid" : dd <= 3 ? "soon" : "";
+    const tag = dd < 0 ? "나감" : dd === 0 ? "오늘" : "D-" + dd;
+    return `<div class="fx ${state}"><span class="dd">${tag}</span><span class="nm"><b>${esc(f.name)}</b><span>매달 ${f.day}일 · ${esc(f.cat)} · 1년 ${won(f.amt * 12)}원</span></span><span class="amt">${won(f.amt)}원</span>${withDel ? `<button class="del" type="button" data-fxdel="${esc(f.id)}" aria-label="${esc(f.name)} 삭제">×</button>` : "<span></span>"}</div>`;
+  }
+
   // ---------- 저장소 ----------
   function loadLocal() {
     try { const raw = localStorage.getItem(LS_KEY); if (raw) return JSON.parse(raw); } catch (e) {}
     return {};
   }
   function saveLocal() {
-    try { localStorage.setItem(LS_KEY, JSON.stringify({ entries: Object.fromEntries(entries), budget })); } catch (e) {}
+    try { localStorage.setItem(LS_KEY, JSON.stringify({ entries: Object.fromEntries([...entries].filter(([, e]) => !e.example)), budget, fixed: Object.fromEntries(fixed) })); } catch (e) {}
   }
   function writeError(e) {
     const c = e && e.code;
@@ -499,6 +569,18 @@ nav.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(-
     entries.delete(id);
     render();
     if (backend === "db") { try { await db.doc("entries/" + id).delete(); } catch (err) { toast(writeError(err)); } }
+    else saveLocal();
+  }
+  async function putFixed(f) {
+    fixed.set(f.id, f);
+    render();
+    if (backend === "db") { try { await db.doc("fixed/" + f.id).set(f); } catch (err) { toast(writeError(err)); } }
+    else saveLocal();
+  }
+  async function removeFixed(id) {
+    fixed.delete(id);
+    render();
+    if (backend === "db") { try { await db.doc("fixed/" + id).delete(); } catch (err) { toast(writeError(err)); } }
     else saveLocal();
   }
   async function saveBudget(v) {
@@ -597,6 +679,17 @@ nav.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(-
       : `이번 주 예산을 ${won(wi.spent - wi.wbudget)}원 넘겼어요. 다음 주 월요일에 새 보스가 나와요.`;
     $("boss").classList.toggle("down", bossHp <= 0);
 
+    // 고정지출
+    const fm = fxMonth(TODAY.slice(0, 7));
+    $("fx-total").textContent = won(fm.total);
+    $("fx-paid").textContent = won(fm.paid);
+    $("fx-left").textContent = won(fm.total - fm.paid);
+    const nextMk = addDays(TODAY.slice(0, 7) + "-" + pad(dim(TODAY)), 1).slice(0, 7);
+    const upcoming = [...fm.list.filter(f => f.date >= TODAY), ...fxMonth(nextMk).list].slice(0, 3);
+    $("fx-upcoming").innerHTML = !fm.list.length
+      ? '<div class="empty">월세·통신비·구독료처럼 매달 나가는 돈을 등록하면 결제일 전에 알려 드려요. 관리 버튼을 눌러 추가하세요.</div>'
+      : upcoming.length ? upcoming.map(f => fxRow(f, false)).join("") : '<div class="empty">이번 달 고정지출은 모두 나갔어요.</div>';
+
     // 저금통
     $("piggy-amt").textContent = won(s.piggy) + "원";
     const coins = Math.min(40, Math.floor(s.piggy / COIN));
@@ -614,6 +707,7 @@ nav.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(-
       ["퍼펙트 데이", "퀘스트 전부 성공 1일", s.perfectDays >= 1],
       ["보스 사냥꾼", "주간 보스 격파 1회", s.bossWins >= 1],
       ["동전 열 개", "저금통 50,000원", s.piggy >= 50000],
+      ["새는 돈 탐지기", "고정지출 3개 등록", fixed.size >= 3],
       ["예산 마법사", "레벨 6 달성", L >= 6],
     ];
     $("badges").innerHTML = badges.map(([n, c, g]) => `<div class="badge ${g ? "got" : "locked"}"><b>${esc(n)}</b><span>${esc(c)}</span></div>`).join("");
@@ -634,6 +728,7 @@ nav.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(-
     const first = calMonth + "-01";
     const offset = parse(first).getDay();
     const n = dim(first);
+    const fxDays = new Set(fxList().map(f => fxDate(f, calMonth)));
     let html = WD.map(w => `<div class="wd">${w}</div>`).join("");
     for (let i = 0; i < offset; i++) html += '<div class="day blank"></div>';
     for (let i = 1; i <= n; i++) {
@@ -642,14 +737,15 @@ nav.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(-
       let cls = d > TODAY ? "future" : !j ? "" : j.zero ? "zero" : j.clear ? "clear" : "over";
       if (d === TODAY) cls += " today";
       const v = j ? (j.zero ? "0" : won(j.spent)) : "";
-      html += `<button type="button" class="day ${cls}" data-day="${d}" aria-pressed="${d === selDay}" aria-label="${fmtDay(d)} ${j ? won(j.spent) + "원" : "기록 없음"}"><span class="dn">${i}</span><span class="dv">${v}</span></button>`;
+      html += `<button type="button" class="day ${cls}" data-day="${d}" aria-pressed="${d === selDay}" aria-label="${fmtDay(d)} ${j ? won(j.spent) + "원" : "기록 없음"}"><span class="dn">${i}</span>${fxDays.has(d) ? '<i class="fxdot" aria-hidden="true"></i>' : ""}<span class="dv">${v}</span></button>`;
     }
     $("cal").innerHTML = html;
     const list = (days.get(selDay) || []).slice().sort((a, b) => a.at - b.at);
     $("sel-title").textContent = fmtDay(selDay);
     const j = selDay <= TODAY ? judgeDay(selDay, days) : null;
     $("sel-sum").textContent = j ? `쓴 돈 ${won(j.spent)}원 / 한도 ${won(j.limit)}원` : "";
-    $("sel-list").innerHTML = list.length ? list.map(entryRow).join("") : `<div class="empty">이날은 기록이 없어요. 오늘 탭에서 날짜를 ${fmtDay(selDay)}로 바꾸면 늦게라도 적을 수 있어요.</div>`;
+    const selFx = fxList().map(f => ({ ...f, date: fxDate(f, selDay.slice(0, 7)) })).filter(f => f.date === selDay);
+    $("sel-list").innerHTML = selFx.map(f => fxRow(f, false)).join("") + (list.length ? list.map(entryRow).join("") : `<div class="empty">이날은 기록이 없어요. 오늘 탭에서 날짜를 ${fmtDay(selDay)}로 바꾸면 늦게라도 적을 수 있어요.</div>`);
   }
 
   function renderList() {
@@ -659,9 +755,11 @@ nav.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(-
     for (const e of month) if (e.kind === "out") tot[e.cat] = (tot[e.cat] || 0) + e.amt;
     const rows = Object.entries(tot).sort((a, b) => b[1] - a[1]);
     const sum = rows.reduce((a, r) => a + r[1], 0);
-    const max = rows.length ? rows[0][1] : 1;
+    const max = Math.max(1, ...rows.map(r => r[1]), fxMonth(mk).paid);
     $("list-title").textContent = Number(mk.slice(5)) + "월 어디에 썼나";
-    $("list-total").textContent = won(sum) + "원 / 예산 " + won(budget) + "원";
+    const fm = fxMonth(mk);
+    $("list-total").textContent = "생활비 " + won(sum) + "원 / 예산 " + won(budget) + "원";
+    if (fm.total) rows.push(["고정 " + "(" + fm.list.length + ")", fm.paid]);
     $("bars").innerHTML = rows.length ? rows.map(([c, v]) => `<div class="bar-row"><span>${esc(c)}</span><span class="track"><i style="width:${v / max * 100}%"></i></span><span class="v">${won(v)}</span></div>`).join("") : '<div class="empty">이번 달 지출이 아직 없어요.</div>';
     const all = [...entries.values()].sort((a, b) => b.d.localeCompare(a.d) || b.at - a.at);
     let html = "", cur = null;
@@ -676,13 +774,26 @@ nav.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(-
     $("all-list").innerHTML = html || '<div class="empty">아직 기록이 없어요. 오늘 탭에서 첫 지출을 적어 보세요.</div>';
   }
 
+  function renderFixedSet() {
+    const fm = fxMonth(TODAY.slice(0, 7));
+    $("x-sum").textContent = fm.list.length ? `${fm.list.length}개 · 월 ${won(fm.total)}원` : "";
+    $("x-list").innerHTML = fm.list.length ? fm.list.map(f => fxRow(f, !f.example)).join("") : '<div class="empty">아직 등록한 고정지출이 없어요.</div>';
+    const ins = $("x-insight");
+    ins.hidden = !fm.list.length;
+    if (fm.list.length) {
+      const sub = fm.list.filter(f => f.cat === "구독").reduce((a, f) => a + f.amt, 0);
+      ins.textContent = `한 달 실제 지출 계획 = 고정 ${won(fm.total)}원 + 생활비 ${won(budget)}원 = ${won(fm.total + budget)}원. 고정지출은 1년이면 ${won(fm.total * 12)}원이에요.` +
+        (sub ? ` 구독만 1년 ${won(sub * 12)}원, 저금통 동전 ${won(Math.floor(sub * 12 / COIN))}개 분량입니다.` : " 1만원짜리 하나를 끊으면 1년에 12만원, 동전 24개가 남아요.");
+    }
+  }
+
   function render() {
     const s = scoreAll();
     renderHeader(s);
     if (tab === "today") renderToday(s);
     if (tab === "cal") renderCal(s);
     if (tab === "list") renderList();
-    if (tab === "set" && document.activeElement !== $("s-budget")) $("s-budget").value = won(budget);
+    if (tab === "set") { if (document.activeElement !== $("s-budget")) $("s-budget").value = won(budget); renderFixedSet(); }
   }
 
   // ---------- 피드백 ----------
@@ -779,6 +890,28 @@ nav.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(-
     toast(`한 달 예산 ${won(n)}원 · 하루 기본 한도 ${won(Math.floor(n / dim(TODAY)))}원`);
   });
 
+  $("x-day").innerHTML = Array.from({ length: 31 }, (_, i) => `<option value="${i + 1}">${i + 1}일</option>`).join("");
+  $("x-day").value = "25";
+  $("x-cat").innerHTML = FX_CATS.map(c => `<option>${c}</option>`).join("");
+  $("x-amt").addEventListener("input", e => { const n = parseAmt(e.target.value); e.target.value = n ? won(n) : ""; });
+  $("x-form").addEventListener("submit", e => {
+    e.preventDefault();
+    const name = $("x-name").value.trim(), amt = parseAmt($("x-amt").value);
+    if (!name) { toast("이름을 적어 주세요. 예: 월세, 통신비"); $("x-name").focus(); return; }
+    if (!amt) { toast("금액을 적어 주세요."); $("x-amt").focus(); return; }
+    const f = { id: "x" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), name, amt, day: Number($("x-day").value), cat: $("x-cat").value, at: Date.now() };
+    putFixed(f);
+    $("x-name").value = ""; $("x-amt").value = "";
+    if (fixed.size === 3) pop("배지 획득");
+    toast(`${name} 매달 ${f.day}일 ${won(amt)}원 · 1년 ${won(amt * 12)}원`, () => removeFixed(f.id));
+  });
+  document.addEventListener("click", e => {
+    const d = e.target.closest("[data-fxdel]");
+    if (d) { const f = fixed.get(d.dataset.fxdel); if (f) { removeFixed(f.id); toast(`${f.name}을(를) 지웠어요.`, () => putFixed(f)); } return; }
+    const g = e.target.closest("[data-goto]");
+    if (g) setTab(g.dataset.goto);
+  });
+
   function setTab(t) {
     tab = t;
     for (const b of document.querySelectorAll("nav.tabs button")) b.setAttribute("aria-selected", b.dataset.tab === t);
@@ -805,7 +938,8 @@ nav.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(-
     backend = "local";
     const o = loadLocal();
     if (o.budget) budget = o.budget;
-    applyLoaded(Object.values(o.entries || {}));
+    fixed = new Map(Object.values(o.fixed || {}).map(f => [f.id, f]));
+    applyLoaded(Object.values(o.entries || {}).filter(e => !e.example));
   }
 
   showExamples();
@@ -820,6 +954,11 @@ nav.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(-
       db = ns;
       db.doc("settings/main").onSnapshot(snap => {
         if (snap.exists) { const v = snap.data(); if (v && v.budget) { budget = v.budget; render(); } }
+      }, () => {});
+      db.collection("fixed").onSnapshot(snap => {
+        const m = new Map();
+        snap.docs.forEach(d => { if (d.exists) { const v = d.data(); m.set(v.id || d.id, { ...v, id: v.id || d.id }); } });
+        fixed = m; render();
       }, () => {});
       db.collection("entries").onSnapshot(snap => {
         if (!settled) { settled = true; clearTimeout(timer); }
