@@ -1,0 +1,549 @@
+<title>전자책 생성기</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@400;500;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: a writing desk. Sticky header with progress, a 6-step rail, one working panel per step. */
+:root{
+  --bg:#EDF0EC; --surface:#FBFCFA; --surface-2:#E3E8E2; --line:#CDD5CC;
+  --ink:#1B2420; --ink-2:#4E5B55; --ink-3:#83908A;
+  --accent:#0E6655; --accent-ink:#FFFFFF; --accent-soft:#D5EAE3;
+  --mark:#F3D35B; --mark-ink:#3E3000;
+  --warn:#A3591B; --warn-soft:#F7E6D3;
+  --f-display:"Gowun Batang","Noto Serif KR",serif;
+  --f-body:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#111513; --surface:#181E1B; --surface-2:#212925; --line:#2E3833;
+    --ink:#E3EAE6; --ink-2:#A6B3AC; --ink-3:#6F7D76;
+    --accent:#56C2A6; --accent-ink:#06231B; --accent-soft:#183A31;
+    --mark:#E2C24A; --mark-ink:#241B00;
+    --warn:#E3A266; --warn-soft:#3A2717;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#111513; --surface:#181E1B; --surface-2:#212925; --line:#2E3833;
+  --ink:#E3EAE6; --ink-2:#A6B3AC; --ink-3:#6F7D76;
+  --accent:#56C2A6; --accent-ink:#06231B; --accent-soft:#183A31;
+  --mark:#E2C24A; --mark-ink:#241B00;
+  --warn:#E3A266; --warn-soft:#3A2717;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.6}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--surface)}
+.wrap{max-width:1080px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--surface);border-bottom:1px solid var(--line)}
+.top .wrap{display:flex;flex-direction:column;gap:10px;padding-block:14px 0}
+.brand{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 14px}
+.brand h1{font-family:var(--f-display);font-size:26px;font-weight:700;margin:0;letter-spacing:-.01em}
+.brand .book{color:var(--ink-2);font-size:14px;min-width:0}
+.brand .book b{color:var(--ink);font-weight:500}
+.bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.saved{font-size:12px;color:var(--ink-3);margin-right:auto}
+.prog{display:flex;align-items:center;gap:10px;font-family:var(--f-mono);font-size:12px;color:var(--ink-2)}
+.prog .track{width:120px;height:6px;border-radius:3px;background:var(--surface-2);overflow:hidden}
+.prog .fill{display:block;height:100%;background:var(--accent);transition:width .3s}
+button,.btn{font:inherit;font-size:13px;font-weight:500;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;padding:7px 12px;cursor:pointer;line-height:1.3}
+button:hover{border-color:var(--ink-3)}
+button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+button.primary:hover{filter:brightness(1.08)}
+button.armed{background:var(--warn-soft);color:var(--warn);border-color:var(--warn)}
+button:disabled{opacity:.5;cursor:not-allowed}
+button.ghost{border-color:transparent;background:transparent;color:var(--ink-2);padding:6px 8px}
+nav.rail{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;margin-top:2px}
+nav.rail::-webkit-scrollbar{display:none}
+.step{flex:1 0 112px;text-align:left;border:none;border-bottom:3px solid transparent;border-radius:0;background:none;padding:8px 6px 9px;color:var(--ink-3)}
+.step .n{display:block;font-family:var(--f-mono);font-size:11px}
+.step .l{display:block;font-size:13px;font-weight:500;white-space:nowrap}
+.step.on{color:var(--ink);border-bottom-color:var(--accent)}
+.step.done .n::after{content:" ✓";color:var(--accent)}
+main{padding-block:24px 64px}
+.panel{display:flex;flex-direction:column;gap:20px}
+.head h2{font-family:var(--f-display);font-size:24px;margin:0 0 4px;text-wrap:balance}
+.head p{margin:0;color:var(--ink-2);max-width:62ch}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+label.f{display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:500;color:var(--ink-2);min-width:0}
+label.f .hint{font-weight:400;color:var(--ink-3);font-size:12px}
+input[type=text],textarea,select{font:inherit;font-size:15px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 11px;width:100%;min-width:0}
+textarea{resize:vertical;min-height:72px;line-height:1.65}
+textarea.tall{min-height:420px}
+textarea.mid{min-height:220px}
+.lab{font-size:12px;font-weight:700;letter-spacing:.06em;color:var(--accent)}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.status{font-size:13px;color:var(--ink-2);min-height:1.2em}
+.status.err{color:var(--warn)}
+.note{font-size:13px;color:var(--ink-2);background:var(--surface-2);border-radius:8px;padding:10px 12px}
+.note.warn{background:var(--warn-soft);color:var(--warn)}
+.opt{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border:1px solid var(--line);border-radius:10px;cursor:pointer;background:var(--bg)}
+.opt input{margin-top:5px;accent-color:var(--accent)}
+.opt.sel{border-color:var(--accent);background:var(--accent-soft)}
+.opt small{display:block;color:var(--ink-3);font-size:12px}
+.chapters{display:flex;flex-direction:column;gap:10px}
+.chap{display:grid;grid-template-columns:34px 1fr auto;gap:10px;align-items:start;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px}
+.chap .no{font-family:var(--f-mono);font-size:12px;color:var(--ink-3);padding-top:10px}
+.chap .body{display:flex;flex-direction:column;gap:8px;min-width:0}
+.chap .tools{display:flex;flex-direction:column;gap:4px}
+.qs{display:flex;flex-direction:column;gap:6px}
+.qs input{font-size:13px}
+.writer{display:grid;grid-template-columns:240px 1fr;gap:16px;align-items:start}
+.clist{display:flex;flex-direction:column;gap:4px;position:sticky;top:150px}
+.citem{display:flex;flex-direction:column;align-items:flex-start;gap:3px;text-align:left;border:1px solid transparent;background:none;padding:9px 10px;border-radius:10px;width:100%}
+.citem .t{font-size:13px;font-weight:500;color:var(--ink);line-height:1.35}
+.citem.on{background:var(--surface);border-color:var(--line)}
+.chip{font-size:11px;font-weight:500;padding:2px 8px;border-radius:999px;background:var(--surface-2);color:var(--ink-2)}
+.chip.memo{background:var(--accent-soft);color:var(--accent)}
+.chip.draft{background:var(--warn-soft);color:var(--warn)}
+.chip.done{background:var(--mark);color:var(--mark-ink)}
+.memo-q{font-size:14px;font-weight:500;color:var(--ink)}
+.meta{font-family:var(--f-mono);font-size:12px;color:var(--ink-3);font-variant-numeric:tabular-nums}
+.prose{font-family:var(--f-display);font-size:16px;line-height:1.9;max-width:66ch}
+.prose h1{font-size:24px;line-height:1.4;margin:0 0 18px;text-wrap:balance}
+.prose h2{font-size:19px;margin:28px 0 10px}
+.prose h3{font-size:16px;margin:22px 0 8px}
+.prose p{margin:0 0 14px}
+.prose blockquote{margin:0 0 14px;padding:10px 16px;background:var(--surface-2);border-radius:8px}
+.prose blockquote p{margin:0}
+.prose hr{border:none;border-top:1px solid var(--line);margin:24px 0}
+.prose table{border-collapse:collapse;font-family:var(--f-body);font-size:14px;margin:0 0 14px}
+.prose th,.prose td{border:1px solid var(--line);padding:6px 10px;text-align:left;vertical-align:top}
+.prose th{background:var(--surface-2)}
+.tbl{overflow-x:auto;max-width:100%}
+.prose ul,.prose ol{margin:0 0 14px;padding-left:1.4em}
+.covers{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:20px;align-items:start}
+.cover{aspect-ratio:210/297;max-width:100%;width:280px;border-radius:6px;padding:28px 24px;display:flex;flex-direction:column;justify-content:space-between;box-shadow:0 8px 24px rgba(0,0,0,.18);overflow:hidden}
+.cover .ct{font-family:var(--f-display);font-weight:700;font-size:44px;line-height:1.1;letter-spacing:-.02em;word-break:keep-all}
+.cover .cs{font-size:14px;line-height:1.5;margin-top:12px;word-break:keep-all}
+.cover .rule{width:40px;height:4px;margin-top:18px}
+.cover .ca{font-size:13px;font-weight:500}
+.swatches{display:flex;gap:8px;flex-wrap:wrap}
+.sw{display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--bg);cursor:pointer;font-size:13px}
+.sw.sel{border-color:var(--accent);background:var(--accent-soft)}
+.sw i{display:inline-flex;width:34px;height:20px;border-radius:4px;overflow:hidden}
+.sw i b{flex:1}
+.colors{display:flex;gap:12px;flex-wrap:wrap}
+.colors label{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--ink-2)}
+.colors input[type=color]{width:36px;height:28px;border:1px solid var(--line);border-radius:6px;padding:0;background:none}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px}
+.stat .v{font-family:var(--f-mono);font-size:24px;font-variant-numeric:tabular-nums}
+.stat .k{font-size:12px;color:var(--ink-3)}
+.bookview{background:var(--surface-2);border-radius:12px;padding:20px;max-height:640px;overflow:auto;display:flex;flex-direction:column;align-items:center;gap:16px}
+.page{background:var(--surface);width:100%;max-width:620px;padding:36px 34px;border-radius:4px;box-shadow:0 2px 10px rgba(0,0,0,.08)}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-size:14px;z-index:20;max-width:calc(100% - 32px)}
+@media (max-width:760px){
+  .writer,.covers{grid-template-columns:1fr}
+  .clist{position:static;flex-direction:row;overflow-x:auto}
+  .citem{min-width:150px}
+  .cover{width:100%}
+  .chap{grid-template-columns:1fr}
+  .chap .no{padding:0}
+  .chap .tools{flex-direction:row}
+  .prog .track{width:80px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<header class="top">
+  <div class="wrap">
+    <div class="brand">
+      <h1>전자책 생성기</h1>
+      <span class="book" id="bookline"></span>
+    </div>
+    <div class="bar">
+      <span class="saved" id="saved">불러오는 중</span>
+      <span class="prog"><span class="track"><span class="fill" id="pfill"></span></span><span id="ptext">0%</span></span>
+      <button id="btn-save" type="button">작업 파일로 저장</button>
+      <button id="btn-load" type="button">작업 파일 불러오기</button>
+      <button id="btn-new" type="button" data-confirm="새로 시작하면 지금 작업이 지워져요. 한 번 더 누르세요">새로 시작</button>
+      <input type="file" id="file-in" accept=".json,application/json" hidden>
+    </div>
+    <nav class="rail" id="rail" aria-label="단계"></nav>
+  </div>
+</header>
+<main class="wrap" id="main"></main>
+<div class="toast" id="toast" hidden></div>
+
+<script type="application/json" id="seed">/*SEED*/</script>
+<script>
+(function(){
+"use strict";
+const KEY="ebookgen.v1";
+const SEED=JSON.parse(document.getElementById("seed").textContent);
+const BLANK={
+  v:1, step:0, cards:{know:"",fun:"",weak:"",healed:"",hard:""},
+  topic:{core:"",promise:"",title:"",subtitle:"",reader:"",author:""},
+  topicDraft:null, research:"", toc:[], cur:0,
+  cover:{bg:"#0F3D36",ink:"#F3F0E6",accent:"#F3D35B",confirmed:false}, coverIdeas:null, exported:false
+};
+const clone=o=>JSON.parse(JSON.stringify(o));
+let S=load()||clone(SEED);
+let SAMPLE, DL;
+let busy=null; // {key, ctl}
+const STEPS=["팔리는 주제","주제 리서치","목차 설계","원고 집필","표지 디자인","본문 디자인"];
+const CARD_LABELS=[["know","알고 싶었던 것"],["fun","재밌게 할 수 있는 분야"],["weak","겪은 약점·고민"],["healed","이제는 아닌 상처"],["hard","지금 힘든 것"]];
+const PRESETS=[
+  {name:"깊은 숲",bg:"#0F3D36",ink:"#F3F0E6",accent:"#F3D35B"},
+  {name:"새벽 남색",bg:"#1C2340",ink:"#EEF0F7",accent:"#7FD3C4"},
+  {name:"맑은 종이",bg:"#F2EFE7",ink:"#1B2420",accent:"#D2483A"}
+];
+
+/* ---------- storage ---------- */
+function load(){try{const r=localStorage.getItem(KEY);if(!r)return null;const o=JSON.parse(r);return o&&o.v===1?Object.assign(clone(BLANK),o):null}catch(e){return null}}
+let saveT;
+function save(){clearTimeout(saveT);saveT=setTimeout(()=>{
+  try{localStorage.setItem(KEY,JSON.stringify(S));stamp("자동 저장됨")}catch(e){stamp("이 브라우저에선 자동 저장이 안 돼요. 작업 파일로 저장해 주세요")}
+  progress();
+},350)}
+function stamp(t){const d=new Date();document.getElementById("saved").textContent=t+" · "+d.toLocaleTimeString("ko-KR",{hour:"numeric",minute:"2-digit"})}
+
+/* ---------- helpers ---------- */
+const $=s=>document.querySelector(s);
+function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function getP(path){return path.split(".").reduce((o,k)=>o==null?o:o[k],S)}
+function setP(path,val){const ks=path.split(".");let o=S;for(let i=0;i<ks.length-1;i++)o=o[ks[i]];o[ks[ks.length-1]]=val}
+function toast(t){const el=$("#toast");el.textContent=t;el.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>el.hidden=true,2600)}
+function chars(s){return (s||"").replace(/\s/g,"").length}
+function chapStatus(c){if(c.done)return["done","완성"];if((c.draft||"").trim())return["draft","초안"];if((c.memo||[]).some(m=>(m||"").trim()))return["memo","메모"];return["","메모 전"]}
+
+/* ---------- markdown ---------- */
+function inline(s){return esc(s).replace(/\*\*(.+?)\*\*/g,"<strong>$1</strong>").replace(/(^|[^*])\*([^*\s][^*]*?)\*/g,"$1<em>$2</em>").replace(/`([^`]+)`/g,"<code>$1</code>")}
+function md(src){
+  const L=(src||"").replace(/\r/g,"").split("\n");let out=[],i=0;
+  while(i<L.length){
+    let l=L[i];
+    if(!l.trim()){i++;continue}
+    let m;
+    if((m=l.match(/^(#{1,4})\s+(.*)/))){const n=Math.min(m[1].length,3);out.push(`<h${n}>${inline(m[2])}</h${n}>`);i++;continue}
+    if(/^\s*(-{3,}|\*{3,})\s*$/.test(l)){out.push("<hr>");i++;continue}
+    if(/^\s*>/.test(l)){let b=[];while(i<L.length&&/^\s*>/.test(L[i])){b.push(L[i].replace(/^\s*>\s?/,""));i++}out.push("<blockquote>"+md(b.join("\n"))+"</blockquote>");continue}
+    if(/^\s*\|/.test(l)){let rows=[];while(i<L.length&&/^\s*\|/.test(L[i])){rows.push(L[i]);i++}
+      rows=rows.filter(r=>!/^\s*\|?\s*:?-{2,}/.test(r.replace(/\|/g,"").trim()?r:"---"));
+      const cells=r=>r.trim().replace(/^\||\|$/g,"").split("|").map(c=>inline(c.trim()));
+      let h=rows.shift();let html="<div class='tbl'><table><thead><tr>"+cells(h).map(c=>"<th>"+c+"</th>").join("")+"</tr></thead><tbody>";
+      rows.forEach(r=>{if(/^\s*\|?[\s:\-|]+$/.test(r))return;html+="<tr>"+cells(r).map(c=>"<td>"+c+"</td>").join("")+"</tr>"});
+      out.push(html+"</tbody></table></div>");continue}
+    if(/^\s*([-*]|\d+\.)\s+/.test(l)){const ol=/^\s*\d+\./.test(l);let it=[];while(i<L.length&&/^\s*([-*]|\d+\.)\s+/.test(L[i])){it.push(L[i].replace(/^\s*([-*]|\d+\.)\s+/,""));i++}
+      out.push((ol?"<ol>":"<ul>")+it.map(x=>"<li>"+inline(x)+"</li>").join("")+(ol?"</ol>":"</ul>"));continue}
+    let p=[];while(i<L.length&&L[i].trim()&&!/^(#{1,4}\s|\s*>|\s*\||\s*([-*]|\d+\.)\s+|\s*-{3,}\s*$)/.test(L[i])){p.push(inline(L[i]));i++}
+    if(p.length)out.push("<p>"+p.join("<br>")+"</p>");else{out.push("<p>"+inline(l)+"</p>");i++}
+  }
+  return out.join("\n");
+}
+
+/* ---------- prompts ---------- */
+function cardsText(){return CARD_LABELS.map(([k,l])=>`- ${l}: ${S.cards[k]||"(비어 있음)"}`).join("\n")}
+function bookText(){const t=S.topic;return `제목: ${t.title}\n부제: ${t.subtitle}\n약속 문장: ${t.promise}\n핵심 메시지: ${t.core}\n독자: ${t.reader}`}
+function tocText(){return S.toc.map((c,i)=>`${i}. ${c.title}${c.goal?" – "+c.goal:""}`).join("\n")}
+const P={
+  topic:()=>`나는 아래 경험을 가진 사람이야. 이걸로 처음 전자책을 쓰려고 해.
+${cardsText()}
+
+다음을 만들어줘.
+1) core: 다섯 항목이 겹치는 핵심 메시지 한 문장
+2) promises: "이 책을 다 읽은 사람은 ___ 할 수 있게 된다" 문장 3개. type은 실용형/회복형/정체성형. 측정 가능한 결과(예: 하루 1시간)를 넣을 것
+3) titles: 제목+부제 3개. 기억하기 쉬운 짧은 제목(새 단어도 좋음)과 뜻을 풀어주는 부제
+4) reader: 이 책을 살 독자를 한 사람처럼 묘사한 한 문장
+
+JSON 하나로만 답해: {"core":"","promises":[{"type":"실용형","text":""}],"titles":[{"title":"","subtitle":""}],"reader":""}`,
+  research:()=>`전자책을 쓰기 전 리서치를 해줘.
+${bookText()}
+저자의 경험:
+${cardsText()}
+
+마크다운으로 세 부분을 써줘.
+## 써도 되는 근거
+연구·개념 5개. 각 줄: 개념 – 한 줄 설명 (연구자, 연도, 책/논문 제목)
+## 피할 주장
+대중적으로 퍼졌지만 과학적으로 약하거나 틀린 주장 3개와 대신 쓸 표현
+## 저자만의 차별점
+비슷한 책과 다르게 이 저자의 경험으로 차별화할 지점 3개
+확실하지 않은 출처는 "(확인 필요)"라고 표시해. 지어낸 논문은 절대 쓰지 마.`,
+  toc:()=>`25~30쪽짜리 첫 전자책의 목차를 설계해줘.
+${bookText()}
+저자의 다섯 항목:
+${cardsText()}
+리서치 메모:
+${(S.research||"").slice(0,3000)}
+
+흐름: 프롤로그(저자 경험) → 원리 2~3장 → 해석 바꾸기 → 실천 루틴 → 에필로그. 모두 6~8꼭지.
+각 꼭지마다 저자에게 던질 "3줄 메모" 질문 3개를 만들어줘. 질문은 저자의 실제 장면을 끌어내야 해: (그 순간의 상황 / 몸과 기분 / 그때 한 생각) 또는 (직전 기분 / 하는 동안 / 끝난 뒤). 짧고 답하기 쉽게.
+
+JSON 배열 하나로만 답해: [{"title":"프롤로그 – ...","card":"사용하는 저자 항목","goal":"이 장을 읽으면 얻는 것 한 줄","questions":["","",""]}]`,
+  draft:(i)=>{const c=S.toc[i];const prev=i>0?S.toc[i-1]:null;
+    const memo=(c.questions||[]).map((q,k)=>`- ${q}\n  → ${(c.memo||[])[k]||"(답 없음)"}`).join("\n");
+    return `전자책 한 꼭지를 써줘.
+${bookText()}
+전체 목차:
+${tocText()}
+
+이번에 쓸 꼭지: ${c.title}
+이 꼭지의 목표: ${c.goal||""}
+저자의 3줄 메모 (실제 경험, 날것 그대로):
+${memo}
+${prev&&prev.draft?`\n앞 꼭지 마지막 부분(이어지게 쓸 것):\n${prev.draft.slice(-600)}\n`:""}
+규칙
+- 마크다운. 첫 줄은 "# ${c.title}"
+- 독자에게 말하듯 "~요"체, 문장은 짧게
+- 구조: 저자의 경험 장면 → "나는 왜 이럴까?" 같은 질문 → 해석을 뒤집는 한 문장(굵게) → 소제목 2~3개로 원리를 쉬운 비유와 함께 설명 → "## 오늘의 실천" 번호 3단계 → 다음 꼭지로 넘기는 질문 한 줄
+- 프롤로그·에필로그는 원리 설명을 줄이고 이야기 중심으로
+- A4 3~4쪽 분량 (공백 빼고 3,000~4,500자)
+- 저자 메모에 없는 사실(사건, 숫자, 진단)을 지어내지 말 것. 필요하면 [저자 확인: ...]으로 비워둘 것
+- 의학적 진단이나 치료처럼 들리는 표현 금지. 정신건강을 다루면 전문가 도움 안내를 짧게 넣을 것 (한국: 정신건강 위기상담 109)
+- 저자가 아직 겪고 있는 주제라면 극복담 대신 "흔들리면서 붙잡는 법" 톤
+- 맨 끝에 "### 근거 메모"로 인용한 연구(연구자, 연도, 제목)를 적고 불확실하면 (확인 필요)`},
+  cover:()=>`전자책 표지 색 조합 3개를 제안해줘.
+${bookText()}
+조건: 제목 글자색(ink)과 배경(bg) 대비가 충분할 것. accent는 작은 선 하나에만 쓰임.
+JSON 배열로만 답해: [{"name":"짧은 이름","bg":"#RRGGBB","ink":"#RRGGBB","accent":"#RRGGBB","mood":"한 줄 설명"}]`
+};
+
+/* ---------- generation ---------- */
+const ERR={not_granted:"Claude 사용을 허용하지 않아서 생성이 꺼졌어요. 직접 쓰거나 '프롬프트 복사'를 써 주세요.",sampling_disabled:"이 계정에선 Claude 생성을 쓸 수 없어요.",rate_limited:"요청이 많아요. 잠시 뒤에 다시 눌러 주세요.",session_expired:"다시 로그인한 뒤 눌러 주세요.",refused:"Claude가 이 내용으로는 답하지 않았어요. 메모를 조금 바꿔서 다시 해 보세요.",invalid_json:"결과 형식이 깨졌어요. 한 번 더 눌러 주세요.",empty_completion:"빈 답이 왔어요. 다시 눌러 주세요.",prompt_too_large:"내용이 너무 길어요. 리서치 메모를 줄여 주세요.",upstream_error:"연결이 잠깐 끊겼어요. 다시 눌러 주세요."};
+function setStatus(key,t,err){const el=document.getElementById("st-"+key);if(el){el.textContent=t;el.classList.toggle("err",!!err)}}
+async function gen(key,prompt,{json=false,onText,cache=true}={}){
+  if(!SAMPLE){toast("여기서는 Claude 생성을 쓸 수 없어요. '프롬프트 복사'를 써 주세요.");return null}
+  if(busy){toast("다른 생성이 진행 중이에요.");return null}
+  const ctl=new AbortController();busy={key,ctl};paintBusy();
+  setStatus(key,"Claude가 생각하는 중… (보통 10~60초)");
+  try{
+    const opts={signal:ctl.signal,cache};
+    if(onText)opts.onText=u=>{setStatus(key,"쓰는 중… "+chars(u.text).toLocaleString()+"자");onText(u.text)};
+    const r=json?await SAMPLE.json(prompt,opts):await SAMPLE(prompt,opts);
+    if(!json&&r.truncated)setStatus(key,"길이 제한으로 끝이 잘렸어요. 이어서 직접 다듬어 주세요.",true);else setStatus(key,"완료");
+    return json?r:r.text;
+  }catch(e){
+    if(e&&e.code==="cancelled"){setStatus(key,"멈췄어요.");return onText&&e.text?e.text:null}
+    setStatus(key,ERR[e&&e.code]||"생성에 실패했어요. 다시 눌러 주세요.",true);
+    return onText&&e&&e.text?e.text:null;
+  }finally{busy=null;paintBusy()}
+}
+function paintBusy(){document.querySelectorAll("[data-gen]").forEach(b=>{b.disabled=!!busy||!SAMPLE});document.querySelectorAll("[data-stop]").forEach(b=>b.hidden=!busy||busy.key!==b.dataset.stop)}
+async function copyText(t){try{await navigator.clipboard.writeText(t);toast("복사했어요. Claude 대화창에 붙여넣으세요.")}catch(e){const ta=document.createElement("textarea");ta.value=t;document.body.append(ta);ta.select();try{document.execCommand("copy");toast("복사했어요.")}catch(_){toast("복사가 막혀 있어요.")}ta.remove()}}
+function genRow(key,label,extra=""){return `<div class="row"><button class="primary" type="button" data-act="gen-${key}" data-gen>${label}</button><button type="button" data-stop="${key}" data-act="stop" hidden>멈추기</button><button class="ghost" type="button" data-act="copy-${key}">프롬프트 복사</button>${extra}</div><div class="status" id="st-${key}"></div>`}
+
+/* ---------- progress ---------- */
+function stepDone(){
+  const t=S.toc, done=t.filter(c=>c.done).length;
+  return [!!S.topic.title.trim(), !!S.research.trim(), t.length>0, t.length?done/t.length:0, !!S.cover.confirmed, !!S.exported];
+}
+function progress(){
+  const d=stepDone();const pct=Math.round(d.reduce((a,b)=>a+(b===true?1:b===false?0:b),0)/6*100);
+  $("#pfill").style.width=pct+"%";$("#ptext").textContent=pct+"%";
+  const t=S.topic;$("#bookline").innerHTML=t.title?`<b>${esc(t.title)}</b>${t.subtitle?" – "+esc(t.subtitle):""}`:"아직 제목이 없어요";
+  document.querySelectorAll(".step").forEach((b,i)=>b.classList.toggle("done",d[i]===true||d[i]===1));
+}
+function rail(){$("#rail").innerHTML=STEPS.map((s,i)=>`<button type="button" class="step${i===S.step?" on":""}" data-act="step" data-i="${i}" aria-current="${i===S.step?"step":"false"}"><span class="n">0${i+1}</span><span class="l">${s}</span></button>`).join("")}
+
+/* ---------- views ---------- */
+function vTopic(){
+  const d=S.topicDraft;
+  return `<div class="head"><h2>팔리는 주제</h2><p>다섯 칸에 내 이야기를 날것 그대로 적으면, 겹치는 지점에서 책의 핵심 메시지와 제목을 뽑아요.</p></div>
+  <div class="grid2">${CARD_LABELS.map(([k,l])=>`<label class="f">${l}<textarea id="c-${k}" data-k="cards.${k}" rows="3">${esc(S.cards[k])}</textarea></label>`).join("")}</div>
+  ${genRow("topic","주제 뽑기")}
+  ${d?`<div class="card"><span class="lab">CLAUDE 제안</span><p style="margin:0"><b>핵심 메시지</b> ${esc(d.core)}</p>
+    <div class="lab">약속 문장 고르기</div>${(d.promises||[]).map((p,i)=>`<label class="opt${S.topic.promise===p.text?" sel":""}"><input type="radio" name="pp" data-act="pick-promise" data-i="${i}"${S.topic.promise===p.text?" checked":""}><span>${esc(p.text)}<small>${esc(p.type)}</small></span></label>`).join("")}
+    <div class="lab">제목 고르기</div>${(d.titles||[]).map((p,i)=>`<label class="opt${S.topic.title===p.title?" sel":""}"><input type="radio" name="tt" data-act="pick-title" data-i="${i}"${S.topic.title===p.title?" checked":""}><span><b>${esc(p.title)}</b> – ${esc(p.subtitle)}</span></label>`).join("")}
+  </div>`:""}
+  <div class="card"><span class="lab">확정한 내용</span><div class="grid2">
+    <label class="f">제목<input type="text" id="t-title" data-k="topic.title" value="${esc(S.topic.title)}"></label>
+    <label class="f">부제<input type="text" id="t-sub" data-k="topic.subtitle" value="${esc(S.topic.subtitle)}"></label>
+    <label class="f">약속 문장<textarea id="t-promise" data-k="topic.promise" rows="2">${esc(S.topic.promise)}</textarea></label>
+    <label class="f">핵심 메시지<textarea id="t-core" data-k="topic.core" rows="2">${esc(S.topic.core)}</textarea></label>
+    <label class="f">독자<textarea id="t-reader" data-k="topic.reader" rows="2">${esc(S.topic.reader)}</textarea></label>
+    <label class="f">저자 이름 <span class="hint">표지에 들어가요</span><input type="text" id="t-author" data-k="topic.author" value="${esc(S.topic.author)}"></label>
+  </div></div>`;
+}
+function vResearch(){
+  return `<div class="head"><h2>주제 리서치</h2><p>쓸 수 있는 근거, 피해야 할 주장, 나만의 차별점을 정리해요. 출판 전에 근거는 원문을 꼭 직접 확인하세요.</p></div>
+  ${genRow("research",S.research.trim()?"리서치 다시 하기":"리서치 하기")}
+  <label class="f">리서치 메모 <span class="hint">직접 고쳐도 돼요. 다음 단계에서 목차를 만들 때 참고해요.</span><textarea class="tall" id="research" data-k="research">${esc(S.research)}</textarea></label>`;
+}
+function vToc(){
+  const has=S.toc.some(c=>(c.draft||"").trim());
+  return `<div class="head"><h2>목차 설계</h2><p>꼭지마다 "3줄 메모" 질문이 붙어요. 원고 집필 단계에서 이 질문에 한 줄씩 답하면 초안이 나와요.</p></div>
+  ${genRow("toc",S.toc.length?"목차 새로 만들기":"목차 만들기",has?"":"")}
+  ${has?`<div class="note warn">목차를 새로 만들면 지금 원고가 사라져요. 버튼을 두 번 눌러야 실행돼요.</div>`:""}
+  <div class="chapters">${S.toc.map((c,i)=>`<div class="chap">
+    <span class="no">${String(i).padStart(2,"0")}</span>
+    <div class="body">
+      <input type="text" id="toc-t-${i}" data-k="toc.${i}.title" value="${esc(c.title)}" aria-label="꼭지 제목">
+      <input type="text" id="toc-g-${i}" data-k="toc.${i}.goal" value="${esc(c.goal||"")}" placeholder="이 꼭지를 읽으면 얻는 것" aria-label="꼭지 목표" style="font-size:13px">
+      <div class="qs">${(c.questions||[]).map((q,k)=>`<input type="text" id="toc-q-${i}-${k}" data-k="toc.${i}.questions.${k}" value="${esc(q)}" aria-label="메모 질문 ${k+1}">`).join("")}</div>
+    </div>
+    <div class="tools"><button class="ghost" type="button" data-act="up" data-i="${i}" aria-label="위로">↑</button><button class="ghost" type="button" data-act="down" data-i="${i}" aria-label="아래로">↓</button><button class="ghost" type="button" data-act="del" data-i="${i}" data-confirm="삭제할까요? 한 번 더" aria-label="삭제">삭제</button></div>
+  </div>`).join("")}</div>
+  <div class="row"><button type="button" data-act="add">꼭지 추가</button></div>`;
+}
+function vWrite(){
+  if(!S.toc.length)return `<div class="head"><h2>원고 집필</h2><p>목차가 아직 없어요. 03 목차 설계에서 먼저 만들어 주세요.</p></div>`;
+  if(S.cur>=S.toc.length)S.cur=0;
+  const c=S.toc[S.cur];c.memo=c.memo||["","",""];const [cls,lab]=chapStatus(c);
+  return `<div class="head"><h2>원고 집필</h2><p>질문에 한 줄씩, 날것 그대로 답하세요. 잘 쓸 필요 없어요. 초안은 Claude가 쓰고, 마지막 다듬기는 내가 해요.</p></div>
+  <div class="writer">
+    <div class="clist">${S.toc.map((x,i)=>{const [k,l]=chapStatus(x);return `<button type="button" class="citem${i===S.cur?" on":""}" data-act="cur" data-i="${i}"><span class="t">${esc(x.title)}</span><span class="chip ${k}">${l}</span></button>`}).join("")}</div>
+    <div class="panel" style="gap:16px;min-width:0">
+      <div class="card">
+        <div class="row" style="justify-content:space-between"><span class="lab">3줄 메모</span><span class="chip ${cls}">${lab}</span></div>
+        ${(c.questions||[]).map((q,k)=>`<label class="f"><span class="memo-q">${k+1}. ${esc(q)}</span><textarea id="memo-${S.cur}-${k}" data-k="toc.${S.cur}.memo.${k}" rows="2">${esc(c.memo[k]||"")}</textarea></label>`).join("")}
+        ${genRow("draft",(c.draft||"").trim()?"초안 다시 쓰기":"초안 쓰기")}
+        ${(c.draft||"").trim()?`<div class="note">초안 다시 쓰기는 지금 원고를 바꿔요. 두 번 눌러야 실행돼요.</div>`:""}
+      </div>
+      <div class="card">
+        <div class="row" style="justify-content:space-between">
+          <span class="lab">원고</span>
+          <span class="meta" id="cc">${chars(c.draft).toLocaleString()}자 · 약 ${(chars(c.draft)/1100).toFixed(1)}쪽</span>
+        </div>
+        <div class="row"><button type="button" data-act="mode" class="${S.mode!=="view"?"primary":""}" data-m="edit">편집</button><button type="button" data-act="mode" class="${S.mode==="view"?"primary":""}" data-m="view">미리보기</button>
+          <label class="row" style="margin-left:auto;font-size:13px;gap:6px"><input type="checkbox" id="donebox" data-act="done"${c.done?" checked":""}> 완성 표시</label></div>
+        ${S.mode==="view"?`<div class="prose">${md(c.draft)||"<p>아직 원고가 없어요.</p>"}</div>`:`<textarea class="tall" id="draft-${S.cur}" data-k="toc.${S.cur}.draft">${esc(c.draft||"")}</textarea>`}
+        ${/\[저자 확인/.test(c.draft||"")?`<div class="note warn">[저자 확인] 표시가 ${(c.draft.match(/\[저자 확인/g)||[]).length}곳 남았어요. 직접 채우거나 지워 주세요.</div>`:""}
+      </div>
+    </div>
+  </div>`;
+}
+function coverHTML(big){const t=S.topic,c=S.cover;return `<div class="cover" style="background:${c.bg};color:${c.ink}${big?";width:100%":""}"><div><div class="ct">${esc(t.title||"제목")}</div><div class="cs">${esc(t.subtitle||"")}</div><div class="rule" style="background:${c.accent}"></div></div><div class="ca">${esc(t.author||"")}</div></div>`}
+function vCover(){
+  const all=[...PRESETS,...(S.coverIdeas||[])];const c=S.cover;
+  return `<div class="head"><h2>표지 디자인</h2><p>색 조합을 고르고 바로 확인해요. 제목·부제·저자 이름은 01 단계에서 바꿀 수 있어요.</p></div>
+  <div class="covers">
+    <div class="panel" style="gap:16px">
+      <div class="card"><span class="lab">색 조합</span>
+        <div class="swatches">${all.map((p,i)=>`<button type="button" class="sw${p.bg===c.bg&&p.ink===c.ink&&p.accent===c.accent?" sel":""}" data-act="preset" data-i="${i}"><i><b style="background:${esc(p.bg)}"></b><b style="background:${esc(p.ink)}"></b><b style="background:${esc(p.accent)}"></b></i>${esc(p.name)}</button>`).join("")}</div>
+        ${(S.coverIdeas||[]).length?`<div class="meta">${S.coverIdeas.map(p=>esc(p.name)+": "+esc(p.mood||"")).join("<br>")}</div>`:""}
+        ${genRow("cover","Claude에게 색 추천받기")}
+        <div class="colors"><label>배경 <input type="color" id="cv-bg" data-k="cover.bg" value="${esc(c.bg)}"></label><label>글자 <input type="color" id="cv-ink" data-k="cover.ink" value="${esc(c.ink)}"></label><label>포인트 <input type="color" id="cv-ac" data-k="cover.accent" value="${esc(c.accent)}"></label></div>
+      </div>
+      <div class="row"><button type="button" class="primary" data-act="cover-ok">${c.confirmed?"표지 확정됨 ✓":"이 표지로 확정"}</button></div>
+    </div>
+    <div id="coverbox">${coverHTML()}</div>
+  </div>`;
+}
+function vBook(){
+  const t=S.toc,done=t.filter(c=>c.done).length,total=t.reduce((a,c)=>a+chars(c.draft),0),checks=t.reduce((a,c)=>a+((c.draft||"").match(/\[저자 확인/g)||[]).length,0);
+  return `<div class="head"><h2>본문 디자인</h2><p>표지, 목차, 원고를 A4 전자책 한 권으로 묶어요. 책 파일(.html)을 저장해 크롬에서 열고 ⌘P(윈도우는 Ctrl+P) → "PDF로 저장"을 고르면 PDF가 돼요.</p></div>
+  <div class="stats">
+    <div class="stat"><div class="v">${done}/${t.length}</div><div class="k">완성한 꼭지</div></div>
+    <div class="stat"><div class="v">${total.toLocaleString()}</div><div class="k">글자 수 (공백 제외)</div></div>
+    <div class="stat"><div class="v">${Math.round(total/1100)+2}</div><div class="k">예상 쪽수 (A4)</div></div>
+    <div class="stat"><div class="v">${checks}</div><div class="k">남은 [저자 확인]</div></div>
+  </div>
+  ${done<t.length?`<div class="note warn">아직 완성 표시가 안 된 꼭지가 ${t.length-done}개 있어요. 지금 저장하면 쓴 만큼만 들어가요.</div>`:""}
+  <div class="row"><button type="button" class="primary" data-act="export-html">책 파일 저장 (.html → PDF)</button><button type="button" data-act="export-md">원고 저장 (.md)</button></div>
+  <div class="bookview">
+    <div class="page" style="padding:0;background:none;box-shadow:none;max-width:320px">${coverHTML(true)}</div>
+    <div class="page prose"><h1>차례</h1>${t.map(c=>`<p>${esc(c.title)}</p>`).join("")}</div>
+    ${t.filter(c=>(c.draft||"").trim()).map(c=>`<div class="page prose">${md(c.draft)}</div>`).join("")}
+  </div>`;
+}
+function render(){
+  rail();progress();
+  $("#main").innerHTML=`<div class="panel">${[vTopic,vResearch,vToc,vWrite,vCover,vBook][S.step]()}</div>`;
+  paintBusy();
+  if(SAMPLE===null){const n=document.createElement("div");n.className="note";n.textContent="이 화면에서는 Claude 생성이 꺼져 있어요. 직접 쓰거나 '프롬프트 복사'로 Claude 대화창에 붙여넣어 쓰세요.";$("#main .panel").insertBefore(n,$("#main .panel").children[1])}
+}
+
+/* ---------- export ---------- */
+function bookDoc(){
+  const t=S.topic,c=S.cover;
+  const chaps=S.toc.filter(x=>(x.draft||"").trim());
+  return `<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>${esc(t.title)}</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@400;500&display=swap">
+<style>@page{size:A4;margin:22mm 20mm}body{font-family:"Gowun Batang",serif;color:#1b2420;font-size:11.5pt;line-height:1.85;margin:0}
+.cover{page-break-after:always;height:250mm;background:${c.bg};color:${c.ink};padding:30mm 22mm;display:flex;flex-direction:column;justify-content:space-between;-webkit-print-color-adjust:exact;print-color-adjust:exact;box-sizing:border-box}
+@media print{.cover{margin:-22mm -20mm 0;height:297mm;width:210mm}}
+.cover h1{font-size:54pt;line-height:1.1;margin:0;word-break:keep-all}.cover p{font-family:"IBM Plex Sans KR",sans-serif;font-size:14pt;margin:14px 0 0;word-break:keep-all}.cover i{display:block;width:50px;height:5px;background:${c.accent};margin-top:24px}.cover span{font-family:"IBM Plex Sans KR",sans-serif;font-size:12pt}
+.toc{page-break-after:always}.toc h2{font-size:20pt}.toc li{margin:6px 0}
+section{page-break-before:always;max-width:160mm;margin:0 auto}section h1{font-size:20pt;line-height:1.4;margin:0 0 20px;word-break:keep-all}h2{font-size:14pt;margin:26px 0 8px}h3{font-size:12pt}
+blockquote{margin:0 0 12px;padding:10px 14px;background:#eef1ec;border-radius:6px;-webkit-print-color-adjust:exact;print-color-adjust:exact}blockquote p{margin:0}
+table{border-collapse:collapse;font-family:"IBM Plex Sans KR",sans-serif;font-size:9.5pt;margin:0 0 12px}th,td{border:1px solid #c9d1c8;padding:5px 8px;text-align:left;vertical-align:top}
+hr{border:none;border-top:1px solid #c9d1c8;margin:20px 0}p{margin:0 0 11px}</style></head><body>
+<div class="cover"><div><h1>${esc(t.title)}</h1><p>${esc(t.subtitle)}</p><i></i></div><span>${esc(t.author)}</span></div>
+<div class="toc"><h2>차례</h2><ol style="list-style:none;padding:0">${chaps.map(x=>`<li>${esc(x.title)}</li>`).join("")}</ol></div>
+${chaps.map(x=>`<section>${md(x.draft)}</section>`).join("\n")}
+</body></html>`;
+}
+function bookMd(){const t=S.topic;return `# ${t.title}\n## ${t.subtitle}\n\n${t.author?"저자: "+t.author+"\n\n":""}`+S.toc.filter(x=>(x.draft||"").trim()).map(x=>x.draft.trim()).join("\n\n---\n\n")}
+async function offer(filename,data){
+  if(!DL){await copyText(data);toast("이 화면에선 파일 저장이 안 돼서 내용을 복사했어요.");return false}
+  try{await DL.save({filename,data});toast("저장했어요.");return true}
+  catch(e){if(e&&e.code==="declined")toast("저장을 취소했어요.");else if(e&&e.code==="rate_limited")toast("잠시 뒤에 다시 눌러 주세요.");else{await copyText(data);toast("파일 저장이 막혀서 내용을 복사했어요.")}return false}
+}
+const fname=ext=>(S.topic.title||"전자책").replace(/[\\/:*?"<>|]/g,"").trim()+ext;
+
+/* ---------- events ---------- */
+function armed(btn){
+  if(!btn.dataset.confirm)return true;
+  if(btn.classList.contains("armed")){btn.classList.remove("armed");btn.textContent=btn.dataset.orig;return true}
+  btn.dataset.orig=btn.textContent;btn.textContent=btn.dataset.confirm;btn.classList.add("armed");
+  setTimeout(()=>{if(btn.classList.contains("armed")){btn.classList.remove("armed");btn.textContent=btn.dataset.orig}},3500);
+  return false;
+}
+document.addEventListener("input",e=>{
+  const k=e.target.dataset&&e.target.dataset.k;if(!k)return;
+  setP(k,e.target.value);save();
+  if(k.startsWith("cover.")){$("#coverbox").innerHTML=coverHTML();S.cover.confirmed=false}
+  if(/^toc\.\d+\.draft$/.test(k)){const c=S.toc[S.cur];const cc=$("#cc");if(cc)cc.textContent=`${chars(c.draft).toLocaleString()}자 · 약 ${(chars(c.draft)/1100).toFixed(1)}쪽`}
+  if(/^topic\.(title|subtitle)$/.test(k))progress();
+});
+document.addEventListener("click",async e=>{
+  const b=e.target.closest("[data-act]");if(!b)return;
+  const a=b.dataset.act,i=+b.dataset.i;
+  if(a==="step"){S.step=i;save();render();window.scrollTo({top:0});return}
+  if(a==="stop"){busy&&busy.ctl.abort();return}
+  if(a==="gen-topic"){const r=await gen("topic",P.topic(),{json:true});if(r&&r.titles){S.topicDraft=r;if(!S.topic.core)S.topic.core=r.core||"";if(!S.topic.reader)S.topic.reader=r.reader||"";save();render();setStatus("topic","완료. 아래에서 골라 주세요.")}return}
+  if(a==="copy-topic")return copyText(P.topic());
+  if(a==="pick-promise"){S.topic.promise=S.topicDraft.promises[i].text;save();render();return}
+  if(a==="pick-title"){const t=S.topicDraft.titles[i];S.topic.title=t.title;S.topic.subtitle=t.subtitle;save();render();return}
+  if(a==="gen-research"){const ta=$("#research");const old=S.research;const r=await gen("research",P.research(),{onText:t=>{ta.value=t},cache:false});S.research=r||old;ta.value=S.research;save();return}
+  if(a==="copy-research")return copyText(P.research());
+  if(a==="gen-toc"){
+    if(S.toc.some(c=>(c.draft||"").trim())){b.dataset.confirm=b.dataset.confirm||"원고가 사라져요. 한 번 더 누르세요";if(!armed(b))return}
+    const r=await gen("toc",P.toc(),{json:true,cache:false});
+    if(Array.isArray(r)&&r.length){S.toc=r.map(c=>({title:String(c.title||""),card:String(c.card||""),goal:String(c.goal||""),questions:(c.questions||[]).slice(0,3).map(String),memo:["","",""],draft:"",done:false}));S.cur=0;save();render();setStatus("toc","완료. 제목과 질문은 바로 고칠 수 있어요.")}
+    return}
+  if(a==="copy-toc")return copyText(P.toc());
+  if(a==="up"&&i>0){[S.toc[i-1],S.toc[i]]=[S.toc[i],S.toc[i-1]];save();render();return}
+  if(a==="down"&&i<S.toc.length-1){[S.toc[i+1],S.toc[i]]=[S.toc[i],S.toc[i+1]];save();render();return}
+  if(a==="del"){if(!armed(b))return;S.toc.splice(i,1);save();render();return}
+  if(a==="add"){S.toc.push({title:"새 꼭지",card:"",goal:"",questions:["그 순간 어떤 상황이었나요?","몸과 기분은 어땠나요?","그때 나에게 한 말 한 문장은?"],memo:["","",""],draft:"",done:false});save();render();return}
+  if(a==="cur"){S.cur=i;save();render();return}
+  if(a==="mode"){S.mode=b.dataset.m;save();render();return}
+  if(a==="done"){S.toc[S.cur].done=b.checked;save();render();return}
+  if(a==="gen-draft"){
+    const c=S.toc[S.cur];
+    if((c.draft||"").trim()){b.dataset.confirm=b.dataset.confirm||"지금 원고를 바꿔요. 한 번 더";if(!armed(b))return}
+    if(!(c.memo||[]).some(m=>(m||"").trim())){setStatus("draft","질문에 한 줄이라도 답해 주세요. 메모가 있어야 내 이야기가 들어가요.",true);return}
+    S.mode="edit";const idx=S.cur;const old=c.draft;render();
+    const r=await gen("draft",P.draft(idx),{cache:false,onText:t=>{const ta=document.getElementById("draft-"+idx);if(ta)ta.value=t}});
+    S.toc[idx].draft=r||old;S.toc[idx].done=false;save();
+    const st=document.getElementById("st-draft")?.textContent;render();if(st)setStatus("draft",st);
+    return}
+  if(a==="copy-draft")return copyText(P.draft(S.cur));
+  if(a==="preset"){const p=[...PRESETS,...(S.coverIdeas||[])][i];Object.assign(S.cover,{bg:p.bg,ink:p.ink,accent:p.accent,confirmed:false});save();render();return}
+  if(a==="gen-cover"){const r=await gen("cover",P.cover(),{json:true});if(Array.isArray(r)){S.coverIdeas=r.filter(p=>/^#[0-9a-f]{6}$/i.test(p.bg)&&/^#[0-9a-f]{6}$/i.test(p.ink)&&/^#[0-9a-f]{6}$/i.test(p.accent)).slice(0,3);save();render();setStatus("cover","완료. 위에 추천 색이 추가됐어요.")}return}
+  if(a==="copy-cover")return copyText(P.cover());
+  if(a==="cover-ok"){S.cover.confirmed=true;save();render();return}
+  if(a==="export-html"){if(await offer(fname(".html"),bookDoc())){S.exported=true;save();progress()}return}
+  if(a==="export-md"){await offer(fname(".md"),bookMd());return}
+});
+$("#btn-save").onclick=()=>offer(fname("_작업파일.json"),JSON.stringify(S,null,1));
+$("#btn-load").onclick=()=>$("#file-in").click();
+$("#file-in").onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const o=JSON.parse(r.result);if(!o||o.v!==1||!o.cards)throw 0;S=Object.assign(clone(BLANK),o);save();render();toast("작업 파일을 불러왔어요.")}catch(_){toast("이 생성기에서 저장한 작업 파일(.json)이 아니에요.")}};r.readAsText(f);e.target.value=""};
+$("#btn-new").onclick=e=>{if(!armed(e.currentTarget))return;S=clone(BLANK);save();render();toast("새로 시작해요. 01 단계부터 채워 주세요.")};
+
+/* ---------- boot ---------- */
+render();stamp(load()?"이어서 작업 중":"몰파민 원고를 불러왔어요");
+(async()=>{
+  try{SAMPLE=window.claude?await window.claude.use("sample"):null}catch(_){SAMPLE=null}
+  try{DL=window.claude?await window.claude.use("downloads"):null}catch(_){DL=null}
+  render();
+})();
+})();
+</script>
