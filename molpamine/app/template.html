@@ -183,7 +183,20 @@ const BLANK={
   cover:{bg:"#0F3D36",ink:"#F3F0E6",accent:"#F3D35B",confirmed:false}, coverIdeas:null, exported:false
 };
 const clone=o=>JSON.parse(JSON.stringify(o));
-let S=load()||clone(SEED);
+let S=load();
+if(!S)S=clone(SEED);
+else if((S.rev||0)<(SEED.rev||0)&&S.topic&&S.topic.title===SEED.topic.title){
+  // 새 원고판이 나오면, 비어 있는 꼭지만 채운다 (직접 쓴 내용은 그대로 둔다)
+  SEED.toc.forEach(sc=>{
+    const c=S.toc.find(x=>x.title===sc.title);
+    if(!c){S.toc.push(clone(sc));return}
+    if(!(c.draft||"").trim()){c.draft=sc.draft;c.done=sc.done}
+    (sc.memo||[]).forEach((m,k)=>{c.memo=c.memo||["","",""];if(!(c.memo[k]||"").trim()&&m)c.memo[k]=m});
+  });
+  S.rev=SEED.rev;
+  setTimeout(()=>toast("새 원고판을 불러왔어요. 직접 쓴 내용은 그대로예요."),600);
+}
+S.rev=S.rev||SEED.rev||0;
 let SAMPLE, DL;
 let busy=null; // {key, ctl}
 const STEPS=["팔리는 주제","주제 리서치","목차 설계","원고 집필","표지 디자인","본문 디자인"];
@@ -538,6 +551,7 @@ $("#btn-load").onclick=()=>$("#file-in").click();
 $("#file-in").onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const o=JSON.parse(r.result);if(!o||o.v!==1||!o.cards)throw 0;S=Object.assign(clone(BLANK),o);save();render();toast("작업 파일을 불러왔어요.")}catch(_){toast("이 생성기에서 저장한 작업 파일(.json)이 아니에요.")}};r.readAsText(f);e.target.value=""};
 $("#btn-new").onclick=e=>{if(!armed(e.currentTarget))return;S=clone(BLANK);save();render();toast("새로 시작해요. 01 단계부터 채워 주세요.")};
 
+window.__ebook={bookDoc,bookMd};
 /* ---------- boot ---------- */
 render();stamp(load()?"이어서 작업 중":"몰파민 원고를 불러왔어요");
 (async()=>{
